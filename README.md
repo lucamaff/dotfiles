@@ -2,15 +2,28 @@
 
 ## NixOS
 
-Change
+1. Install NixOS
+
+2. Change the hostname and install chezmoi
+
+```bash
+sudo nano /etc/nixos/configuration.nix
+```
+
+```
 networking.hostName = "nixos-laptop"
-
-Add chezmoi
-
+...
 environment.systemPackages = with pkgs; [
-    vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     chezmoi
   ];
+```
 
-Run
+```bash
+sudo nixos-rebuild switch
+```
+
+3. Run
+
+```bash
 chezmoi init --apply lucamaff
+```
