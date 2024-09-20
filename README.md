@@ -27,3 +27,29 @@ sudo nixos-rebuild switch
 ```bash
 chezmoi init --apply lucamaff
 ```
+
+## NixOS Gaming workstation
+
+1. Install NixOS
+
+2. Change the hostname and install minimal set of tools
+
+```bash
+sudo nano /etc/nixos/configuration.nix
+```
+
+```
+networking.hostName = "nixos-gaming"
+...
+environment.systemPackages = with pkgs; [
+    bitwarden-cli
+    gh
+    git
+    chezmoi
+    helix
+  ];
+```
+
+```bash
+sudo nixos-rebuild switch
+```
