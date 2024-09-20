@@ -53,3 +53,16 @@ environment.systemPackages = with pkgs; [
 ```bash
 sudo nixos-rebuild switch
 ```
+
+3. Login to github and bitwarden
+
+```bash
+bw login
+gh auth login
+```
+
+4. Run
+
+```bash
+chezmoi init --apply lucamaff
+```

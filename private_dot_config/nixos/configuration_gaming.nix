@@ -74,8 +74,19 @@
     #media-session.enable = true;
   };
 
-  # Enable touchpad support (enabled default in most desktopManager).
-  # services.xserver.libinput.enable = true;
+  # Enable NVIDIA GPU
+  hardware.opengl = {
+    enable = true;
+    driSupport = true;
+  };
+  services.xserver.videoDrivers = ["nvidia"];
+  hardware.nvidia.modesetting.enable = true;
+
+  # Mount data disk
+  fileSystems."/mnt/data" = {
+    device = "/dev/disk/by-uuid/4c0551bd-936d-4722-9e66-72108c640156";
+    fsType = "btrfs";
+  };
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.luca = {
@@ -109,10 +120,35 @@
   #  wget
     bitwarden-cli
     bitwarden-desktop
+    bottles
     chezmoi
+    encfs
     gh
     git
     helix
+    heroic
+    jetbrains.pycharm-community
+    kopia
+    logseq
+    lutris
+    #megasync
+    gnomeExtensions.mock-tray
+    mangohud
+    owncloud-client
+    protonup
+    starship
+    teams-for-linux
+    tmux
+    vscodium
+  ];
+
+  # Steam
+  programs.steam.enable = true;
+  programs.steam.gamescopeSession.enable = true;
+  programs.gamemode.enable = true;
+
+  nixpkgs.config.permittedInsecurePackages = [
+    "electron-27.3.11"
   ];
 
   programs.fish.enable = true;
