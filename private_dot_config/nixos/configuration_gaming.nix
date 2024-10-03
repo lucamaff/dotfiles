@@ -118,6 +118,7 @@
   environment.systemPackages = with pkgs; [
   #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
   #  wget
+    ansible
     bitwarden-cli
     bitwarden-desktop
     bottles
@@ -131,13 +132,16 @@
     kopia
     logseq
     lutris
-    #megasync
+    megasync
+    ncdu
     gnomeExtensions.mock-tray
     mangohud
     owncloud-client
+    pika-backup
     protonup
     starship
     teams-for-linux
+    ticktick
     tmux
     vscodium
   ];
@@ -152,6 +156,8 @@
   ];
 
   programs.fish.enable = true;
+
+  services.tailscale.enable = true;
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
