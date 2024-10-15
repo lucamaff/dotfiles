@@ -24,3 +24,16 @@ echo "Now using: /home/{{ .chezmoi.username }}/.config/nixos/configuration_gamin
 sudo nixos-rebuild switch
 
 {{ end }}
+
+
+{{ if eq .chezmoi.hostname "nixos-acer"}}
+# NixOS Luca's gaming workstation
+
+echo "Replace configuration.nix"
+sudo rm -rf /etc/nixos/configuration.nix
+sudo ln -s /home/{{ .chezmoi.username }}/.config/nixos/configuration_acer.nix /etc/nixos/configuration.nix
+
+echo "Now using: /home/{{ .chezmoi.username }}/.config/nixos/configuration_acer.nix"
+sudo nixos-rebuild switch
+
+{{ end }}

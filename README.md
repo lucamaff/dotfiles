@@ -10,44 +10,21 @@
 sudo nano /etc/nixos/configuration.nix
 ```
 
-```
-networking.hostName = "nixos-laptop"
-...
-environment.systemPackages = with pkgs; [
-    chezmoi
-  ];
-```
-
-```bash
-sudo nixos-rebuild switch
-```
-
-3. Run
-
-```bash
-chezmoi init --apply lucamaff
-```
-
-## NixOS Gaming workstation
-
-1. Install NixOS
-
-2. Change the hostname and install minimal set of tools
-
-```bash
-sudo nano /etc/nixos/configuration.nix
-```
+| Device             | hostname     |
+| ------------------ | ------------ |
+| Gaming workstation | nixos-gaming |
+| Laura's laptop     | nixos-laptop |
+| Acer mini laptop   | nixos-acer   |
 
 ```
 networking.hostName = "nixos-gaming"
 ...
 environment.systemPackages = with pkgs; [
-    bitwarden-cli
-    gh
-    git
-    chezmoi
-    helix
-  ];
+  bitwarden-cli
+  chezmoi
+  gh
+  git
+];
 ```
 
 ```bash
