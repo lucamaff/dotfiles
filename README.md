@@ -6,17 +6,17 @@
 
 2. Change the hostname and install chezmoi
 
-```bash
-sudo nano /etc/nixos/configuration.nix
-```
-
 | Device             | hostname     |
 | ------------------ | ------------ |
 | Gaming workstation | nixos-gaming |
 | Laura's laptop     | nixos-laptop |
 | Acer mini laptop   | nixos-acer   |
 
+```fish
+sudo nano /etc/nixos/configuration.nix
 ```
+
+```nix
 networking.hostName = "nixos-gaming"
 ...
 environment.systemPackages = with pkgs; [
@@ -27,19 +27,19 @@ environment.systemPackages = with pkgs; [
 ];
 ```
 
-```bash
+```fish
 sudo nixos-rebuild switch
 ```
 
 3. Login to github and bitwarden
 
-```bash
+```fish
 bw login
 gh auth login
 ```
 
 4. Run
 
-```bash
+```fish
 chezmoi init --apply lucamaff
 ```
