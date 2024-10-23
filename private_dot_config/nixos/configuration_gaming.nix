@@ -24,6 +24,14 @@
   # Enable networking
   networking.networkmanager.enable = true;
 
+  networking.interfaces.enp11s0.useDHCP = false;
+  networking.interfaces.enp11s0 = {
+    ipv4.addresses = [{
+      address = "192.168.1.30";
+      prefixLength = 24;
+    }];
+  };
+
   # Set your time zone.
   time.timeZone = "Europe/Rome";
 
@@ -48,6 +56,9 @@
   # Enable the GNOME Desktop Environment.
   services.xserver.displayManager.gdm.enable = true;
   services.xserver.desktopManager.gnome.enable = true;
+
+  services.gnome.gnome-keyring.enable = true;
+  security.pam.services.gdm.enableGnomeKeyring = true;
 
   # Configure keymap in X11
   services.xserver = {
@@ -100,7 +111,7 @@
   };
 
   # Enable automatic login for the user.
-  services.displayManager.autoLogin.enable = true;
+  services.displayManager.autoLogin.enable = false;
   services.displayManager.autoLogin.user = "luca";
 
   # Workaround for GNOME autologin: https://github.com/NixOS/nixpkgs/issues/103746#issuecomment-945091229
@@ -122,29 +133,36 @@
     bitwarden-cli
     bitwarden-desktop
     bottles
+    btop
     chezmoi
     encfs
     gh
     git
     helix
     heroic
+    iperf3
     jetbrains.pycharm-community
     kopia
     logseq
     lutris
     megasync
     ncdu
-    gnomeExtensions.mock-tray
+    gnomeExtensions.appindicator
+    gnomeExtensions.wayland-or-x11
     mangohud
     owncloud-client
+    pdf4qt
     pika-backup
     protonup
     starship
+    telegram-desktop
     teams-for-linux
     ticktick
     tmux
     vscodium
   ];
+
+  services.udev.packages = with pkgs; [ gnome.gnome-settings-daemon ];
 
   # Steam
   programs.steam.enable = true;
@@ -158,6 +176,61 @@
   programs.fish.enable = true;
 
   services.tailscale.enable = true;
+
+  services.syncthing = {
+    enable = true;
+    user = "luca";
+    dataDir = "/mnt/data";
+    configDir = "/home/luca/.config/syncthing";
+    openDefaultPorts = true;
+    guiAddress = "localhost:8384";
+    overrideDevices = true;     # overrides any devices added or deleted through the WebUI
+    overrideFolders = true;     # overrides any folders added or deleted through the WebUI
+    settings = {
+      devices = {
+        "hp800g3" = { id = "GV2W7BL-S6HT5OP-EACXTAJ-347P2ZA-ADGDATV-LDFCV3H-4IMT6NL-5HSMYA2"; };
+        "macmini" = { id = "NCANLZ5-ZM3WPT5-PE6X36O-YQLOPCR-AUHSJZX-3B74G72-V5F6KLM-XGJ2KQ5"; };
+        "moto-g32" = { id = "J43GXHC-7SG4NRM-3OZ5Y3W-QTYBJGS-O6SQX2I-T2U42CR-W4DGE4Q-VKI2XAH"; };
+      };
+      folders = {
+        "MobileLuca" = {
+          id = "moto_g32_v6vm-photos";
+          path = "/mnt/data/history/MobileLuca";
+          devices = [ 
+            "hp800g3"
+            "macmini"
+            "moto-g32"
+          ];
+        };
+        "MobileLaura" = {
+          id = "moto_g_pro_8rrx-photos";
+          path = "/mnt/data/history/MobileLaura";
+          devices = [
+            "hp800g3"
+            "macmini"
+          ];
+        };
+        "EncFS" = {
+          id = "j6e46-4z2f7";
+          path = "/mnt/data/media/EncFS";
+          devices = [ 
+            "hp800g3"
+            "macmini"
+            "moto-g32"
+          ];
+        };
+        "Music" = {
+          id = "an4zy-wuavw";
+          path = "/mnt/data/media/Music";
+          devices = [
+            "hp800g3"
+            "macmini"
+          ];
+        };
+      };
+    };
+  };
+
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
