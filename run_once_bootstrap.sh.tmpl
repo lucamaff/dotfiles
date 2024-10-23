@@ -27,13 +27,29 @@ sudo nixos-rebuild switch
 
 
 {{ if eq .chezmoi.hostname "nixos-acer"}}
-# NixOS Luca's gaming workstation
+# Acer mini laptop, old machine
 
 echo "Replace configuration.nix"
 sudo rm -rf /etc/nixos/configuration.nix
 sudo ln -s /home/{{ .chezmoi.username }}/.config/nixos/configuration_acer.nix /etc/nixos/configuration.nix
 
 echo "Now using: /home/{{ .chezmoi.username }}/.config/nixos/configuration_acer.nix"
+sudo nixos-rebuild switch
+
+{{ end }}
+
+{{ if eq .chezmoi.hostname "nixos-macmini"}}
+
+echo "Replace configuration.nix"
+sudo rm -rf /etc/nixos/configuration.nix
+sudo ln -s /home/{{ .chezmoi.username }}/.config/nixos/configuration_macmini.nix /etc/nixos/configuration.nix
+
+echo "Now using: /home/{{ .chezmoi.username }}/.config/nixos/configuration_macmini.nix"
+
+echo "Add unstable channel"
+sudo nix-channel --add https://nixos.org/channels/nixos-unstable nixos-unstable
+sudo nix-channel --update
+
 sudo nixos-rebuild switch
 
 {{ end }}
