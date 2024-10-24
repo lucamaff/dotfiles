@@ -134,18 +134,27 @@
     settings = {
       devices = {
         "hp800g3" = { id = "GV2W7BL-S6HT5OP-EACXTAJ-347P2ZA-ADGDATV-LDFCV3H-4IMT6NL-5HSMYA2"; };
+        "nixos-gaming" = { id = "JXZZBVC-4CWRPBW-XOA52RJ-OHHANXK-XIHPRY5-SHTGQUH-UKFQM4M-EZGK3AT"; };
         "moto-g32" = { id = "J43GXHC-7SG4NRM-3OZ5Y3W-QTYBJGS-O6SQX2I-T2U42CR-W4DGE4Q-VKI2XAH"; };
-        #"device2" = { id = "DEVICE-ID-GOES-HERE"; };
       };
       folders = {
-        #"Documents" = {         # Name of folder in Syncthing, also the folder ID
-          #path = "/home/myusername/Documents";    # Which folder to add to Syncthing
-          #devices = [ "device1" "device2" ];      # Which devices to share the folder with
-        #};
+        "due" = {
+          id = "7bjjp-3xtez";
+          path = "/mnt/data/history/due";
+          devices = [
+            "hp800g3"
+            "nixos-gaming"
+            "moto-g32"
+          ];
+        };
         "MobileLuca" = {
           id = "moto_g32_v6vm-photos";
           path = "/mnt/data/history/MobileLuca";
-          devices = [ "hp800g3" "moto-g32" ];
+          devices = [
+            "hp800g3"
+            "nixos-gaming"
+            "moto-g32"
+          ];
         };
         "MobileLaura" = {
           id = "moto_g_pro_8rrx-photos";
@@ -155,14 +164,33 @@
         "EncFS" = {
           id = "j6e46-4z2f7";
           path = "/mnt/data/media/EncFS";
-          devices = [ "hp800g3" ];
+          devices = [
+            "hp800g3"
+            "nixos-gaming"
+          ];
         };
         "Music" = {
           id = "an4zy-wuavw";
           path = "/mnt/data/media/Music";
-          devices = [ "hp800g3" ];
+          devices = [
+            "hp800g3"
+            "nixos-gaming"
+          ];
         };
       };
+    };
+  };
+
+  # Navidrome
+  services.navidrome = {
+    enable = true;
+    settings = {
+      MusicFolder = "/mnt/data/media/Music/CD";
+      #DataFolder = "/mnt/data/navidrome/data";
+      Address = "0.0.0.0";
+      ImageCacheSize = "1GB";
+      LastFM.ApiKey = "0987c2ad94f73d2bba753d7ce9123a65";
+      LastFM.Secret = "3debb1b9dd1f2a5a580266ab9859dfeb";
     };
   };
 
