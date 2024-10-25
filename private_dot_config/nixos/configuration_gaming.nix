@@ -147,11 +147,13 @@
     lutris
     megasync
     ncdu
+    nixd
     gnomeExtensions.appindicator
     gnomeExtensions.wayland-or-x11
     mangohud
     owncloud-client
     pdf4qt
+    picard
     pika-backup
     protonup
     starship
@@ -188,44 +190,45 @@
     overrideFolders = true;     # overrides any folders added or deleted through the WebUI
     settings = {
       devices = {
-        "hp800g3" = { id = "GV2W7BL-S6HT5OP-EACXTAJ-347P2ZA-ADGDATV-LDFCV3H-4IMT6NL-5HSMYA2"; };
-        "macmini" = { id = "NCANLZ5-ZM3WPT5-PE6X36O-YQLOPCR-AUHSJZX-3B74G72-V5F6KLM-XGJ2KQ5"; };
-        "moto-g32" = { id = "J43GXHC-7SG4NRM-3OZ5Y3W-QTYBJGS-O6SQX2I-T2U42CR-W4DGE4Q-VKI2XAH"; };
+        "hp800g3" = { id = "GV2W7BL-S6HT5OP-EACXTAJ-347P2ZA-ADGDATV-LDFCV3H-4IMT6NL-5HSMYA2"; autoAcceptFolders = true; };
+        "macmini" = { id = "NCANLZ5-ZM3WPT5-PE6X36O-YQLOPCR-AUHSJZX-3B74G72-V5F6KLM-XGJ2KQ5"; autoAcceptFolders = true; };
+        "moto-g32" = { id = "J43GXHC-7SG4NRM-3OZ5Y3W-QTYBJGS-O6SQX2I-T2U42CR-W4DGE4Q-VKI2XAH"; autoAcceptFolders = true; };
       };
       folders = {
-        "MobileLuca" = {
-          id = "moto_g32_v6vm-photos";
-          path = "/mnt/data/history/MobileLuca";
-          devices = [ 
-            "hp800g3"
-            "macmini"
-            "moto-g32"
-          ];
-        };
-        "MobileLaura" = {
-          id = "moto_g_pro_8rrx-photos";
-          path = "/mnt/data/history/MobileLaura";
-          devices = [
-            "hp800g3"
-            "macmini"
-          ];
+        "BigLens" = {
+          id = "62prt-kdyws";
+          path = "/mnt/data/history/BigLens";
+          devices = [ "hp800g3" "macmini" ];
         };
         "EncFS" = {
           id = "j6e46-4z2f7";
           path = "/mnt/data/media/EncFS";
-          devices = [ 
-            "hp800g3"
-            "macmini"
-            "moto-g32"
-          ];
+          devices = [ "hp800g3" "macmini" ];
+        };
+        "MobileLuca" = {
+          id = "moto_g32_v6vm-photos";
+          path = "/mnt/data/history/MobileLuca";
+          devices = [ "hp800g3" "macmini" "moto-g32" ];
+        };
+        "MobileLaura" = {
+          id = "moto_g_pro_8rrx-photos";
+          path = "/mnt/data/history/MobileLaura";
+          devices = [ "hp800g3" "macmini" ];
         };
         "Music" = {
           id = "an4zy-wuavw";
           path = "/mnt/data/media/Music";
-          devices = [
-            "hp800g3"
-            "macmini"
-          ];
+          devices = [ "hp800g3" "macmini" ];
+        };
+        "WhatsAppLuca" = {
+          id = "tysor-1yp0m";
+          path = "/mnt/data/history/WhatsAppLuca";
+          devices = [ "hp800g3" "macmini" "moto-g32" ];
+        };
+        "due" = {
+          id = "7bjjp-3xtez";
+          path = "/home/luca/MEGA/due";
+          devices = [ "hp800g3" "macmini" "moto-g32" ];
         };
       };
     };
