@@ -1,0 +1,162 @@
+[
+  {
+    "config_version": 2,
+    "id": "c3523a5e-b019-4df3-9de4-cb5142b122bd",
+    "archive_prefix": "94953e-",
+    "repo_id": "ba41f33ec7f9aa73a57023f77e24124275e194dc8648cdee646931f10f7331ab",
+    "repo": {
+      "type": "Local",
+      "path": "backup-nixos-gaming-luca",
+      "mount_path": "/run/media/luca/Backup",
+      "uri": "file:///run/media/luca/Backup/backup-nixos-gaming-luca",
+      "drive_name": "WDC WD50NDZW-11A8JS1",
+      "mount_name": "Backup",
+      "volume_uuid": "c3adb1ac-c332-4c71-bb2a-8cf0a182fbb4",
+      "volume_uuid_identifier": "c3adb1ac-c332-4c71-bb2a-8cf0a182fbb4",
+      "removable": true,
+      "icon": ". GThemedIcon drive-harddisk-usb drive-harddisk drive drive-harddisk-usb-symbolic drive-harddisk-symbolic drive-symbolic",
+      "icon_symbolic": ". GThemedIcon drive-harddisk-usb-symbolic drive-harddisk-symbolic drive-symbolic drive-harddisk-usb drive-harddisk drive",
+      "settings": {
+        "command_line_args": []
+      }
+    },
+    "encrypted": true,
+    "encryption_mode": "repokey",
+    "include": [
+      "",
+      "/mnt/data/history"
+    ],
+    "exclude": [
+      {
+        "PathPrefix": ".steam"
+      },
+      {
+        "PathPrefix": "Downloads"
+      },
+      "Caches",
+      "Trash",
+      "FlatpakApps",
+      "VmsContainers"
+    ],
+    "schedule": {
+      "enabled": true,
+      "settings": {
+        "run_on_battery": false
+      },
+      "frequency": "Hourly"
+    },
+    "prune": {
+      "enabled": true,
+      "keep": {
+        "hourly": 48,
+        "daily": 14,
+        "weekly": 4,
+        "monthly": 12,
+        "yearly": 10
+      }
+    },
+    "title": "Backup",
+    "user_scripts": {}
+  },
+  {
+    "config_version": 2,
+    "id": "a3538fd1-b3b7-418a-bd54-ffcc5fa572c5",
+    "archive_prefix": "c89b02-",
+    "repo_id": "e93a4c3d48207491f1cc7f9338833f6b1c7e5b9de8fdb055066ccda4a52aeb18",
+    "repo": {
+      "type": "Remote",
+      "uri": "ssh://192.168.178.101/mnt/data/backup/borg",
+      "settings": {
+        "command_line_args": []
+      }
+    },
+    "encrypted": true,
+    "encryption_mode": "repokey",
+    "include": [
+      "",
+      "/mnt/data/history"
+    ],
+    "exclude": [
+      {
+        "PathPrefix": ".steam"
+      },
+      {
+        "PathPrefix": "Downloads"
+      },
+      "Caches",
+      "Trash",
+      "FlatpakApps",
+      "VmsContainers"
+    ],
+    "schedule": {
+      "enabled": true,
+      "settings": {
+        "run_on_battery": false
+      },
+      "frequency": {
+        "Daily": {
+          "preferred_time": "17:00:00"
+        }
+      }
+    },
+    "prune": {
+      "enabled": true,
+      "keep": {
+        "hourly": 48,
+        "daily": 14,
+        "weekly": 4,
+        "monthly": 12,
+        "yearly": 10
+      }
+    },
+    "title": "",
+    "user_scripts": {}
+  },
+  {
+    "config_version": 2,
+    "id": "68c903f9-0f8c-4207-892a-e82603d3a743",
+    "archive_prefix": "fc5ef0-",
+    "repo_id": "5befe5b43a1e9dbfaaaf17b5e80ffbf8b57c83d1011b546c8ab320e901d8ec0f",
+    "repo": {
+      "type": "Remote",
+      "uri": "ssh://192.168.1.2/mnt/data/backup",
+      "settings": {
+        "command_line_args": []
+      }
+    },
+    "encrypted": true,
+    "encryption_mode": "repokey",
+    "include": [
+      "",
+      "/mnt/data/history"
+    ],
+    "exclude": [
+      {
+        "PathPrefix": ".steam"
+      },
+      "Caches",
+      "Trash",
+      "FlatpakApps",
+      "VmsContainers"
+    ],
+    "schedule": {
+      "enabled": true,
+      "settings": {
+        "run_on_battery": false
+      },
+      "frequency": "Hourly"
+    },
+    "prune": {
+      "enabled": true,
+      "keep": {
+        "hourly": 48,
+        "daily": 14,
+        "weekly": 4,
+        "monthly": 12,
+        "yearly": 10
+      }
+    },
+    "title": "",
+    "user_scripts": {}
+  }
+]
