@@ -87,6 +87,7 @@
   environment.systemPackages = with pkgs; [
   #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     bitwarden-cli
+    borgbackup
     btop
     chezmoi
     gh
@@ -120,6 +121,36 @@
   # Or disable the firewall altogether.
   networking.firewall.enable = false;
 
+  # Share /mnt/data with samba
+  services.samba = {
+    enable = true;
+    openFirewall = true;
+    # You will still need to set up the user accounts to begin with:
+    # $ sudo smbpasswd -a yourusername
+
+    # This adds to the [global] section:
+    extraConfig = ''
+      browseable = yes
+      smb encrypt = required
+    '';
+
+    shares = {
+      homes = {
+        browseable = "no";  # note: each home will be browseable; the "homes" share will not.
+        "read only" = "no";
+        "guest ok" = "no";
+      };
+      data = {
+        path = "/mnt/data";
+        browseable = "yes";
+        "read only" = "no";
+        "guest ok" = "no";
+      };
+    };
+  };
+  # Browsing samba shares with GVFS
+  services.gvfs.enable = true;
+
   services.tailscale.enable = true;
 
   services.syncthing = {
@@ -133,49 +164,50 @@
     overrideFolders = true;     # overrides any folders added or deleted through the WebUI
     settings = {
       devices = {
-        "hp800g3" = { id = "GV2W7BL-S6HT5OP-EACXTAJ-347P2ZA-ADGDATV-LDFCV3H-4IMT6NL-5HSMYA2"; };
-        "nixos-gaming" = { id = "JXZZBVC-4CWRPBW-XOA52RJ-OHHANXK-XIHPRY5-SHTGQUH-UKFQM4M-EZGK3AT"; };
-        "moto-g32" = { id = "J43GXHC-7SG4NRM-3OZ5Y3W-QTYBJGS-O6SQX2I-T2U42CR-W4DGE4Q-VKI2XAH"; };
+        "hp800g3" = { id = "GV2W7BL-S6HT5OP-EACXTAJ-347P2ZA-ADGDATV-LDFCV3H-4IMT6NL-5HSMYA2"; autoAcceptFolders = true; };
+        "nixos-gaming" = { id = "JXZZBVC-4CWRPBW-XOA52RJ-OHHANXK-XIHPRY5-SHTGQUH-UKFQM4M-EZGK3AT"; autoAcceptFolders = true; };
+        "moto-g32" = { id = "J43GXHC-7SG4NRM-3OZ5Y3W-QTYBJGS-O6SQX2I-T2U42CR-W4DGE4Q-VKI2XAH"; autoAcceptFolders = true; };
       };
       folders = {
-        "due" = {
-          id = "7bjjp-3xtez";
-          path = "/mnt/data/history/due";
-          devices = [
-            "hp800g3"
-            "nixos-gaming"
-            "moto-g32"
-          ];
+        "BigLens" = {
+          id = "62prt-kdyws";
+          path = "/mnt/data/history/BigLens";
+          devices = [ "hp800g3" "nixos-gaming" ];
         };
-        "MobileLuca" = {
-          id = "moto_g32_v6vm-photos";
-          path = "/mnt/data/history/MobileLuca";
-          devices = [
-            "hp800g3"
-            "nixos-gaming"
-            "moto-g32"
-          ];
+        "EncFS" = {
+          id = "j6e46-4z2f7";
+          path = "/mnt/data/media/EncFS";
+          devices = [ "hp800g3" "nixos-gaming" ];
         };
         "MobileLaura" = {
           id = "moto_g_pro_8rrx-photos";
           path = "/mnt/data/history/MobileLaura";
           devices = [ "hp800g3" ];
         };
-        "EncFS" = {
-          id = "j6e46-4z2f7";
-          path = "/mnt/data/media/EncFS";
-          devices = [
-            "hp800g3"
-            "nixos-gaming"
-          ];
+        "MobileLuca" = {
+          id = "moto_g32_v6vm-photos";
+          path = "/mnt/data/history/MobileLuca";
+          devices = [ "hp800g3" "nixos-gaming" "moto-g32" ];
         };
         "Music" = {
           id = "an4zy-wuavw";
           path = "/mnt/data/media/Music";
-          devices = [
-            "hp800g3"
-            "nixos-gaming"
-          ];
+          devices = [ "hp800g3" "nixos-gaming" ];
+        };
+        "WhatsAppLaura" = {
+          id = "5i2yp-05gou";
+          path = "/mnt/data/history/WhatsAppLaura";
+          devices = [ "hp800g3" ];
+        };
+        "WhatsAppLuca" = {
+          id = "tysor-1yp0m";
+          path = "/mnt/data/history/WhatsAppLuca";
+          devices = [ "hp800g3" "nixos-gaming" "moto-g32" ];
+        };
+        "due" = {
+          id = "7bjjp-3xtez";
+          path = "/mnt/data/history/due";
+          devices = [ "hp800g3" "nixos-gaming" "moto-g32" ];
         };
       };
     };
