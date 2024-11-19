@@ -13,6 +13,20 @@
       ./immich.nix
     ];
 
+  nixpkgs.config.allowUnfree = true;
+  #nixpkgs.config = {
+    ## Allow proprietary packages
+    #allowUnfree = true;
+    #allowBroken = true;
+#
+    ## Create an alias for the unstable channel
+    #packageOverrides = pkgs: {
+      #unstable = import <nixos-unstable> { # pass the nixpkgs config to the unstable alias # to ensure `allowUnfree = true;` is propagated:
+        #config = config.nixpkgs.config;
+      #};
+    #};
+  #};
+
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -69,18 +83,6 @@
     shell = pkgs.fish;
   };
 
-  nixpkgs.config = {
-    # Allow proprietary packages
-    allowUnfree = true;
-    #allowBroken = true;
-
-    # Create an alias for the unstable channel
-    #packageOverrides = pkgs: {
-      #unstable = import <nixos-unstable> { # pass the nixpkgs config to the unstable alias # to ensure `allowUnfree = true;` is propagated:
-        #config = config.nixpkgs.config;
-      #};
-    #};
-  };
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
@@ -135,6 +137,11 @@
     '';
 
     shares = {
+    #settings = {
+      #global = {
+        #browseable = "yes";
+        #"smb encrypt" = "required";
+      #};
       homes = {
         browseable = "no";  # note: each home will be browseable; the "homes" share will not.
         "read only" = "no";
@@ -228,14 +235,22 @@
 
   #services.immich = {
     #enable = true;
-    #mediaLocation = "/mnt/data/immich-library";
+    #environment.IMMICH_MACHINE_LEARNING_URL = "http://localhost:3003";
+    #mediaLocation = "/mnt/data/immich";
     #package = pkgs.unstable.immich;
     #database.createDB = true;
-    #host = "192.168.178.102";
+    #host = "192.168.1.2";
   #};
+  #users.groups.immich = { };
   #services.postgresql.package = pkgs.unstable.postgresql;
+  #services.redis.package = pkgs.unstable.redis;
   #sops.secrets.immich = {};
   #database.immich = {};
+
+  # auto standby
+  services.cron.systemCronJobs = [
+      "00 23 * * * root rtcwake -m mem --date +8h"
+  ];
   
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
