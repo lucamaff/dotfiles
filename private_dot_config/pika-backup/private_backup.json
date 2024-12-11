@@ -28,6 +28,9 @@
     ],
     "exclude": [
       {
+        "PathPrefix": ".local/share/Steam"
+      },
+      {
         "PathPrefix": ".steam"
       },
       {
@@ -132,6 +135,9 @@
     ],
     "exclude": [
       {
+        "PathPrefix": ".local/share"
+      },
+      {
         "PathPrefix": ".steam"
       },
       "Caches",
@@ -156,7 +162,7 @@
         "yearly": 10
       }
     },
-    "title": "",
+    "title": "Remote Location",
     "user_scripts": {}
   }
 ]

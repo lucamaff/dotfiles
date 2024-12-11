@@ -68,6 +68,12 @@
 
   # Enable CUPS to print documents.
   services.printing.enable = true;
+  
+  services.avahi = {
+    enable = true;
+    nssmdns4 = true;
+    openFirewall = true;
+  };
 
   # Enable sound with pipewire.
   hardware.pulseaudio.enable = false;
@@ -85,6 +91,7 @@
     #media-session.enable = true;
   };
 
+
   # Enable NVIDIA GPU
   hardware.opengl = {
     enable = true;
@@ -94,9 +101,25 @@
   hardware.nvidia.modesetting.enable = true;
 
   # Mount data disk
+  # SSD partition
   fileSystems."/mnt/data" = {
-    device = "/dev/disk/by-uuid/4c0551bd-936d-4722-9e66-72108c640156";
+    device = "/dev/disk/by-uuid/b638a9b2-3aa9-4933-a54d-44ef76312f60";
     fsType = "btrfs";
+    options = [
+      "users" # Allows any user to mount and unmount
+      "nofail" # Prevent system from failing if this drive doesn't mount
+    ];
+  };
+
+  # WD 4TB disk
+  fileSystems."/mnt/wd4001b" = {
+    device = "/dev/disk/by-uuid/e6f1f7e5-f82d-4ade-99b2-edd79eaabaf6";
+    fsType = "btrfs";
+    options = [
+      "users" # Allows any user to mount and unmount
+      "nofail" # Prevent system from failing if this drive doesn't mount
+      "exec" # Needed by Steam library
+    ];
   };
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
@@ -130,25 +153,37 @@
   #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
   #  wget
     ansible
+    awscli
     bitwarden-cli
     bitwarden-desktop
     bottles
     btop
     chezmoi
+    colordiff
+    conda
     encfs
+    exfatprogs
     gh
+    gimp-with-plugins
     git
+    gparted
+    hdparm
     helix
     heroic
+    hfsprogs
     iperf3
     jetbrains.pycharm-community
+    keepassxc
     kopia
+    libreoffice
     logseq
     lutris
     megasync
     ncdu
     nixd
+    onlyoffice-bin_latest
     gnomeExtensions.appindicator
+    gnomeExtensions.pano
     gnomeExtensions.wayland-or-x11
     mangohud
     owncloud-client
@@ -156,7 +191,12 @@
     picard
     pika-backup
     protonup
+    qgis
+    quickemu
+    quickgui
+    smartgithg
     starship
+    subversionClient
     telegram-desktop
     teams-for-linux
     ticktick
@@ -232,6 +272,26 @@
         };
       };
     };
+  };
+
+  # Docker needed by JRC work
+  virtualisation.docker.enable = true;
+  users.extraGroups.docker.members = [ "luca" ];
+
+  # facilitate the deployment of large language models
+  services.ollama = {
+    enable = true;
+    acceleration = "cuda";
+  };
+
+
+  nix.optimise.automatic = true;
+  nix.optimise.dates = [ "13:00" ];
+
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 90d";
   };
 
 
