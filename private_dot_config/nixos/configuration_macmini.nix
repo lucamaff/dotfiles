@@ -8,24 +8,9 @@
   imports =
     [ # Include the results of the hardware scan.
       /etc/nixos/hardware-configuration.nix
-      # sudo nix-channel --add https://nixos.org/channels/nixos-unstable nixos-unstable
-      #<nixos-unstable/nixos/modules/services/web-apps/immich.nix>
-      ./immich.nix
     ];
 
   nixpkgs.config.allowUnfree = true;
-  #nixpkgs.config = {
-    ## Allow proprietary packages
-    #allowUnfree = true;
-    #allowBroken = true;
-#
-    ## Create an alias for the unstable channel
-    #packageOverrides = pkgs: {
-      #unstable = import <nixos-unstable> { # pass the nixpkgs config to the unstable alias # to ensure `allowUnfree = true;` is propagated:
-        #config = config.nixpkgs.config;
-      #};
-    #};
-  #};
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
@@ -98,6 +83,7 @@
     htop
     iperf3
     ncdu
+    powertop
     starship
     tmux
   ];
@@ -130,18 +116,11 @@
     # You will still need to set up the user accounts to begin with:
     # $ sudo smbpasswd -a yourusername
 
-    # This adds to the [global] section:
-    extraConfig = ''
-      browseable = yes
-      smb encrypt = required
-    '';
-
-    shares = {
-    #settings = {
-      #global = {
-        #browseable = "yes";
-        #"smb encrypt" = "required";
-      #};
+    settings = {
+      global = {
+        browseable = "yes";
+        "smb encrypt" = "required";
+      };
       homes = {
         browseable = "no";  # note: each home will be browseable; the "homes" share will not.
         "read only" = "no";
@@ -233,24 +212,32 @@
     };
   };
 
-  #services.immich = {
-    #enable = true;
-    #environment.IMMICH_MACHINE_LEARNING_URL = "http://localhost:3003";
-    #mediaLocation = "/mnt/data/immich";
-    #package = pkgs.unstable.immich;
-    #database.createDB = true;
-    #host = "192.168.1.2";
-  #};
-  #users.groups.immich = { };
-  #services.postgresql.package = pkgs.unstable.postgresql;
-  #services.redis.package = pkgs.unstable.redis;
-  #sops.secrets.immich = {};
-  #database.immich = {};
+  # Create folder for immich, where immich user can read/write
+  systemd.tmpfiles.rules = [
+    "d /mnt/data/immich 0771 luca immich -"
+  ];
+  services.immich = {
+    enable = true;
+    mediaLocation = "/mnt/data/immich";
+    host = "nixos-macmini.tail035a.ts.net";
+    settings.server.externalDomain = "https://nixos-macmini.tail035a.ts.net";
+  };
 
   # auto standby
   services.cron.systemCronJobs = [
       "00 23 * * * root rtcwake -m mem --date +8h"
   ];
+
+  powerManagement.powertop.enable = true;
+
+  nix.optimise.automatic = true;
+  nix.optimise.dates = [ "20:00" ];
+
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 30d";
+  };
   
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
