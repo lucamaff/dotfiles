@@ -55,6 +55,24 @@
     variant = "";
   };
 
+  fileSystems."/mnt/data" = {
+    device = "/dev/disk/by-uuid/74eb8300-2ce3-451e-8281-eb3c5258c677";
+    fsType = "ext4";
+    options = [
+      "users" # Allows any user to mount and unmount
+      "nofail" # Prevent system from failing if this drive doesn't mount
+    ];
+  };
+
+  fileSystems."/mnt/ap1001b" = {
+    device = "/dev/disk/by-uuid/28cd9aa3-77a0-4e59-b0b5-b013b2d08ae7";
+    fsType = "ext4";
+    options = [
+      "users" # Allows any user to mount and unmount
+      "nofail" # Prevent system from failing if this drive doesn't mount
+    ];
+  };
+
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.luca = {
     isNormalUser = true;
@@ -212,6 +230,12 @@
     };
   };
 
+  # Plex
+  services.plex = {
+    enable = true;
+    openFirewall = true;
+  };
+
   # Create folder for immich, where immich user can read/write
   systemd.tmpfiles.rules = [
     "d /mnt/data/immich 0771 luca immich -"
@@ -221,6 +245,20 @@
     mediaLocation = "/mnt/data/immich";
     host = "nixos-macmini.tail035a.ts.net";
     settings.server.externalDomain = "https://nixos-macmini.tail035a.ts.net";
+  };
+
+  services.transmission = {
+    enable = true;
+    user = "luca";
+    openFirewall = true;
+    openRPCPort = true;
+    settings = {
+      rpc-bind-address = "0.0.0.0"; #Bind to own IP
+      rpc-whitelist = "127.0.0.1 192.168.*.*";  # Whitelist all machines in this network
+      rpc-host-whitelist = "nixos-macmini.fritz.box";
+      download-dir = "/mnt/data/media/download";
+      encryption = 2;
+    };
   };
 
   # auto standby
