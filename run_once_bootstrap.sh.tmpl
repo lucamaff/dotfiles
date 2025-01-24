@@ -1,7 +1,7 @@
 #!/bin/sh
 
-{{ if eq .chezmoi.hostname "nixos-laptop"}}
 # NixOS Laura's laptop
+{{ if eq .chezmoi.hostname "nixos-laptop"}}
 
 echo "Replace configuration.nix"
 sudo rm -rf /etc/nixos/configuration.nix
@@ -13,8 +13,8 @@ sudo nixos-rebuild switch
 {{ end }}
 
 
-{{ if eq .chezmoi.hostname "nixos-gaming"}}
 # NixOS Luca's gaming workstation
+{{ if eq .chezmoi.hostname "nixos-gaming"}}
 
 echo "Replace configuration.nix"
 sudo rm -rf /etc/nixos/configuration.nix
@@ -26,8 +26,8 @@ sudo nixos-rebuild switch
 {{ end }}
 
 
-{{ if eq .chezmoi.hostname "nixos-acer"}}
 # Acer mini laptop, old machine
+{{ if eq .chezmoi.hostname "nixos-acer"}}
 
 echo "Replace configuration.nix"
 sudo rm -rf /etc/nixos/configuration.nix
@@ -38,6 +38,8 @@ sudo nixos-rebuild switch
 
 {{ end }}
 
+
+# Mac Mini late 2012
 {{ if eq .chezmoi.hostname "nixos-macmini"}}
 
 echo "Replace configuration.nix"
@@ -49,6 +51,20 @@ echo "Now using: /home/{{ .chezmoi.username }}/.config/nixos/configuration_macmi
 echo "Add unstable channel"
 sudo nix-channel --add https://nixos.org/channels/nixos-unstable nixos-unstable
 sudo nix-channel --update
+
+sudo nixos-rebuild switch
+
+{{ end }}
+
+
+# Zimaboard 232
+{{ if eq .chezmoi.hostname "zimaboard"}}
+
+echo "Replace configuration.nix"
+sudo rm -rf /etc/nixos/configuration.nix
+sudo ln -s /home/{{ .chezmoi.username }}/.config/nixos/configuration_zimaboard.nix /etc/nixos/configuration.nix
+
+echo "Now using: /home/{{ .chezmoi.username }}/.config/nixos/configuration_zimaboard.nix"
 
 sudo nixos-rebuild switch
 
