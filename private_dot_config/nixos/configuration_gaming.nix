@@ -13,6 +13,10 @@
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+  # Use this if /boot becomes full
+  boot.loader.systemd-boot.configurationLimit = 16;
+  # Setting RTC time standard to localtime, compatible with Windows in its default configuration
+  time.hardwareClockInLocalTime = true;
 
   networking.hostName = "nixos-gaming"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
@@ -59,6 +63,7 @@
 
   services.gnome.gnome-keyring.enable = true;
   security.pam.services.gdm.enableGnomeKeyring = true;
+  
 
   # Configure keymap in X11
   services.xserver = {
@@ -121,7 +126,7 @@
     # https://github.com/NVIDIA/open-gpu-kernel-modules#compatible-gpus 
     # Only available from driver 515.43.04+
     # Currently alpha-quality/buggy, so false is currently the recommended setting.
-    open = false;
+    open = true;
 
     # Enable the Nvidia settings menu,
 	  # accessible via `nvidia-settings`.
@@ -139,13 +144,14 @@
     options = [
       "users" # Allows any user to mount and unmount
       "nofail" # Prevent system from failing if this drive doesn't mount
+      "exec" # Needed by Steam library
     ];
   };
 
-  # WD 4TB disk
-  fileSystems."/mnt/wd4001b" = {
-    device = "/dev/disk/by-uuid/e6f1f7e5-f82d-4ade-99b2-edd79eaabaf6";
-    fsType = "btrfs";
+  # Fanxiang 2TB SSD
+  fileSystems."/mnt/fx2001b" = {
+    device = "/dev/disk/by-uuid/37bf1f45-8377-40d4-97c0-126ec03ddae2";
+    fsType = "ext4";
     options = [
       "users" # Allows any user to mount and unmount
       "nofail" # Prevent system from failing if this drive doesn't mount
@@ -184,28 +190,37 @@
   #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
   #  wget
     ansible
+    avidemux
     awscli
     bitwarden-cli
     bitwarden-desktop
     bottles
     btop
     chezmoi
+    chromium
     colordiff
     conda
+    distrobox
     encfs
     exfatprogs
+    ffmpeg-full
+    freetube
     gh
     gimp-with-plugins
     git
     gparted
+    handbrake
     hdparm
     helix
     heroic
-    hfsprogs
+    hfsprogs    
+    htop
+    ifuse
     iperf3
     jetbrains.pycharm-community
     keepassxc
     kopia
+    libimobiledevice
     libreoffice
     logseq
     lutris
@@ -214,6 +229,8 @@
     nixd
     onlyoffice-bin_latest
     gnomeExtensions.appindicator
+    gnomeExtensions.forge
+    gnomeExtensions.mock-tray
     gnomeExtensions.pano
     gnomeExtensions.wayland-or-x11
     mangohud
@@ -230,7 +247,11 @@
     teams-for-linux
     ticktick
     tmux
+    tribler
+    vlc
     vscodium
+    wavemon
+    wget
   ];
 
   services.udev.packages = with pkgs; [ gnome-settings-daemon ];
@@ -259,45 +280,46 @@
     overrideFolders = true;     # overrides any folders added or deleted through the WebUI
     settings = {
       devices = {
+        "nixos-macmini" = { id = "NCANLZ5-ZM3WPT5-PE6X36O-YQLOPCR-AUHSJZX-3B74G72-V5F6KLM-XGJ2KQ5"; autoAcceptFolders = true; };
         "hp800g3" = { id = "GV2W7BL-S6HT5OP-EACXTAJ-347P2ZA-ADGDATV-LDFCV3H-4IMT6NL-5HSMYA2"; autoAcceptFolders = true; };
-        "macmini" = { id = "NCANLZ5-ZM3WPT5-PE6X36O-YQLOPCR-AUHSJZX-3B74G72-V5F6KLM-XGJ2KQ5"; autoAcceptFolders = true; };
+        "zimaboard" = { id = "NXOCWQY-TLCJGYA-UMQRFQM-ZD2LS5X-5RQY4TH-4DXZZC4-KKOWX32-IHPMRQL"; autoAcceptFolders = true; };
         "moto-g32" = { id = "J43GXHC-7SG4NRM-3OZ5Y3W-QTYBJGS-O6SQX2I-T2U42CR-W4DGE4Q-VKI2XAH"; autoAcceptFolders = true; };
       };
       folders = {
         "BigLens" = {
           id = "62prt-kdyws";
           path = "/mnt/data/history/BigLens";
-          devices = [ "hp800g3" "macmini" ];
+          devices = [ "nixos-macmini" "hp800g3" "zimaboard" ];
         };
         "EncFS" = {
           id = "j6e46-4z2f7";
           path = "/mnt/data/media/EncFS";
-          devices = [ "hp800g3" "macmini" ];
+          devices = [ "nixos-macmini" "hp800g3" "zimaboard" ];
         };
         "MobileLuca" = {
           id = "moto_g32_v6vm-photos";
           path = "/mnt/data/history/MobileLuca";
-          devices = [ "hp800g3" "macmini" "moto-g32" ];
+          devices = [ "nixos-macmini" "hp800g3" "zimaboard" "moto-g32" ];
         };
         "MobileLaura" = {
           id = "moto_g_pro_8rrx-photos";
           path = "/mnt/data/history/MobileLaura";
-          devices = [ "hp800g3" "macmini" ];
+          devices = [ "nixos-macmini" "hp800g3" "zimaboard" ];
         };
         "Music" = {
           id = "an4zy-wuavw";
           path = "/mnt/data/media/Music";
-          devices = [ "hp800g3" "macmini" ];
+          devices = [ "nixos-macmini" "hp800g3" "zimaboard" ];
         };
         "WhatsAppLuca" = {
           id = "tysor-1yp0m";
           path = "/mnt/data/history/WhatsAppLuca";
-          devices = [ "hp800g3" "macmini" "moto-g32" ];
+          devices = [ "nixos-macmini" "hp800g3" "zimaboard" "moto-g32" ];
         };
         "due" = {
           id = "7bjjp-3xtez";
           path = "/home/luca/MEGA/due";
-          devices = [ "hp800g3" "macmini" "moto-g32" ];
+          devices = [ "nixos-macmini" "hp800g3" "zimaboard" "moto-g32" ];
         };
       };
     };
@@ -313,10 +335,13 @@
     acceleration = "cuda";
   };
 
+  # Access iOS devices
+  services.usbmuxd.enable = true;
 
-  nix.optimise.automatic = true;
-  nix.optimise.dates = [ "13:00" ];
+  # Optimising the store
+  nix.settings.auto-optimise-store = true;
 
+  # Garbage collection
   nix.gc = {
     automatic = true;
     dates = "weekly";
