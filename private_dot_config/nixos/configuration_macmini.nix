@@ -55,14 +55,14 @@
     variant = "";
   };
 
-  fileSystems."/mnt/data" = {
-    device = "/dev/disk/by-uuid/74eb8300-2ce3-451e-8281-eb3c5258c677";
-    fsType = "ext4";
-    options = [
-      "users" # Allows any user to mount and unmount
-      "nofail" # Prevent system from failing if this drive doesn't mount
-    ];
-  };
+  #fileSystems."/mnt/data" = {
+    ##device = "/dev/disk/by-uuid/74eb8300-2ce3-451e-8281-eb3c5258c677";
+    #fsType = "ext4";
+    #options = [
+      #"users" # Allows any user to mount and unmount
+      #"nofail" # Prevent system from failing if this drive doesn't mount
+    #];
+  #};
 
   fileSystems."/mnt/ap1001b" = {
     device = "/dev/disk/by-uuid/28cd9aa3-77a0-4e59-b0b5-b013b2d08ae7";
@@ -100,7 +100,9 @@
     helix
     htop
     iperf3
+    mediainfo
     ncdu
+    nmap
     powertop
     starship
     tmux
@@ -127,7 +129,7 @@
   # Or disable the firewall altogether.
   networking.firewall.enable = false;
 
-  # Share /mnt/data with samba
+  # Share with samba
   services.samba = {
     enable = true;
     openFirewall = true;
@@ -144,8 +146,8 @@
         "read only" = "no";
         "guest ok" = "no";
       };
-      data = {
-        path = "/mnt/data";
+      ap1001b = {
+        path = "/mnt/ap1001b";
         browseable = "yes";
         "read only" = "no";
         "guest ok" = "no";
@@ -160,7 +162,7 @@
   services.syncthing = {
     enable = true;
     user = "luca";
-    dataDir = "/mnt/data";
+    dataDir = "/mnt/ap1001b";
     configDir = "/home/luca/.config/syncthing";
     openDefaultPorts = true;
     guiAddress = "192.168.1.2:8384";
@@ -169,49 +171,50 @@
     settings = {
       devices = {
         "hp800g3" = { id = "GV2W7BL-S6HT5OP-EACXTAJ-347P2ZA-ADGDATV-LDFCV3H-4IMT6NL-5HSMYA2"; autoAcceptFolders = true; };
-        "nixos-gaming" = { id = "JXZZBVC-4CWRPBW-XOA52RJ-OHHANXK-XIHPRY5-SHTGQUH-UKFQM4M-EZGK3AT"; autoAcceptFolders = true; };
         "moto-g32" = { id = "J43GXHC-7SG4NRM-3OZ5Y3W-QTYBJGS-O6SQX2I-T2U42CR-W4DGE4Q-VKI2XAH"; autoAcceptFolders = true; };
+        "nixos-gaming" = { id = "JXZZBVC-4CWRPBW-XOA52RJ-OHHANXK-XIHPRY5-SHTGQUH-UKFQM4M-EZGK3AT"; autoAcceptFolders = true; };
+        "zimaboard" = { id = "NXOCWQY-TLCJGYA-UMQRFQM-ZD2LS5X-5RQY4TH-4DXZZC4-KKOWX32-IHPMRQL"; autoAcceptFolders = true; };
       };
       folders = {
         "BigLens" = {
           id = "62prt-kdyws";
-          path = "/mnt/data/history/BigLens";
-          devices = [ "hp800g3" "nixos-gaming" ];
+          path = "/mnt/ap1001b/history/BigLens";
+          devices = [ "hp800g3" "nixos-gaming" "zimaboard" ];
         };
         "EncFS" = {
           id = "j6e46-4z2f7";
-          path = "/mnt/data/media/EncFS";
-          devices = [ "hp800g3" "nixos-gaming" ];
+          path = "/mnt/ap1001b/media/EncFS";
+          devices = [ "hp800g3" "nixos-gaming" "zimaboard" ];
         };
         "MobileLaura" = {
           id = "moto_g_pro_8rrx-photos";
-          path = "/mnt/data/history/MobileLaura";
-          devices = [ "hp800g3" ];
+          path = "/mnt/ap1001b/history/MobileLaura";
+          devices = [ "hp800g3" "zimaboard" ];
         };
         "MobileLuca" = {
           id = "moto_g32_v6vm-photos";
-          path = "/mnt/data/history/MobileLuca";
-          devices = [ "hp800g3" "nixos-gaming" "moto-g32" ];
+          path = "/mnt/ap1001b/history/MobileLuca";
+          devices = [ "hp800g3" "moto-g32" "nixos-gaming" "zimaboard" ];
         };
         "Music" = {
           id = "an4zy-wuavw";
-          path = "/mnt/data/media/Music";
-          devices = [ "hp800g3" "nixos-gaming" ];
+          path = "/mnt/ap1001b/media/Music";
+          devices = [ "hp800g3" "nixos-gaming" "zimaboard" ];
         };
         "WhatsAppLaura" = {
           id = "5i2yp-05gou";
-          path = "/mnt/data/history/WhatsAppLaura";
-          devices = [ "hp800g3" ];
+          path = "/mnt/ap1001b/history/WhatsAppLaura";
+          devices = [ "hp800g3" "zimaboard" ];
         };
         "WhatsAppLuca" = {
           id = "tysor-1yp0m";
-          path = "/mnt/data/history/WhatsAppLuca";
-          devices = [ "hp800g3" "nixos-gaming" "moto-g32" ];
+          path = "/mnt/ap1001b/history/WhatsAppLuca";
+          devices = [ "hp800g3" "moto-g32" "nixos-gaming" "zimaboard" ];
         };
         "due" = {
           id = "7bjjp-3xtez";
-          path = "/mnt/data/history/due";
-          devices = [ "hp800g3" "nixos-gaming" "moto-g32" ];
+          path = "/mnt/ap1001b/history/due";
+          devices = [ "hp800g3" "moto-g32" "nixos-gaming" "zimaboard" ];
         };
       };
     };
@@ -219,7 +222,7 @@
 
   # Navidrome
   services.navidrome = {
-    enable = true;
+    enable = false;
     settings = {
       MusicFolder = "/mnt/data/media/Music/CD";
       #DataFolder = "/mnt/data/navidrome/data";
@@ -232,23 +235,23 @@
 
   # Plex
   services.plex = {
-    enable = true;
+    enable = false;
     openFirewall = true;
   };
 
   # Create folder for immich, where immich user can read/write
-  systemd.tmpfiles.rules = [
-    "d /mnt/data/immich 0771 luca immich -"
-  ];
+  #systemd.tmpfiles.rules = [
+    #"d /mnt/data/immich 0771 luca immich -"
+  #];
   services.immich = {
-    enable = true;
+    enable = false;
     mediaLocation = "/mnt/data/immich";
     host = "nixos-macmini.tail035a.ts.net";
     settings.server.externalDomain = "https://nixos-macmini.tail035a.ts.net";
   };
 
   services.transmission = {
-    enable = true;
+    enable = false;
     user = "luca";
     openFirewall = true;
     openRPCPort = true;
@@ -258,18 +261,21 @@
       rpc-host-whitelist = "nixos-macmini.fritz.box";
       download-dir = "/mnt/data/media/download";
       encryption = 2;
+      alt-speed-time-enabled = true;
+      alt-speed-time-begin = 480;
+      alt-speed-time-end = 1320;
     };
   };
 
   # auto standby
   services.cron.systemCronJobs = [
-      "00 23 * * * root rtcwake -m mem --date +8h"
+      "30 22 * * * root rtcwake -m mem --date +10h"
   ];
 
   powerManagement.powertop.enable = true;
-
-  nix.optimise.automatic = true;
-  nix.optimise.dates = [ "20:00" ];
+  
+  # Optimising the store
+  nix.settings.auto-optimise-store = true;
 
   nix.gc = {
     automatic = true;
