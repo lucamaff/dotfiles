@@ -31,10 +31,13 @@ environment.systemPackages = with pkgs; [
 sudo nixos-rebuild switch
 ```
 
-3. Login to github and bitwarden
+3. Login to bitwarden and github
 
 ```fish
 bw login
+```
+
+```fish
 gh auth login
 ```
 
