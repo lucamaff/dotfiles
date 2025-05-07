@@ -14,6 +14,17 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
+  # WD 4TB disk
+  fileSystems."/mnt/wd4001b" = {
+    device = "/dev/disk/by-uuid/e6f1f7e5-f82d-4ade-99b2-edd79eaabaf6";
+    fsType = "btrfs";
+    options = [
+      "users" # Allows any user to mount and unmount
+      "nofail" # Prevent system from failing if this drive doesn't mount
+      "exec" # Needed by Steam library
+    ];
+  };
+
   networking.hostName = "zimaboard"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
@@ -63,13 +74,20 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-  #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-  #  wget
     bitwarden-cli
+    borgbackup
+    btop
     chezmoi
     gh
     git
     helix
+    htop
+    iperf3
+    ncdu
+    nmap
+    powertop
+    starship
+    tmux
   ];
 
   programs.fish.enable = true;
@@ -89,6 +107,92 @@
 
   # Enable tailscale
   services.tailscale.enable = true;
+
+  services.syncthing = {
+    enable = true;
+    user = "luca";
+    dataDir = "/mnt/wd4001b";
+    configDir = "/home/luca/.config/syncthing";
+    openDefaultPorts = true;
+    guiAddress = "zimaboard.tail035a.ts.net:8384";
+    overrideDevices = true;     # overrides any devices added or deleted through the WebUI
+    overrideFolders = true;     # overrides any folders added or deleted through the WebUI
+    settings = {
+      devices = {
+        "hp800g3" = { id = "GV2W7BL-S6HT5OP-EACXTAJ-347P2ZA-ADGDATV-LDFCV3H-4IMT6NL-5HSMYA2"; autoAcceptFolders = true; };
+        "moto-g32" = { id = "J43GXHC-7SG4NRM-3OZ5Y3W-QTYBJGS-O6SQX2I-T2U42CR-W4DGE4Q-VKI2XAH"; autoAcceptFolders = true; };
+        "nixos-gaming" = { id = "JXZZBVC-4CWRPBW-XOA52RJ-OHHANXK-XIHPRY5-SHTGQUH-UKFQM4M-EZGK3AT"; autoAcceptFolders = true; };
+        "nixos-macmini" = { id = "NCANLZ5-ZM3WPT5-PE6X36O-YQLOPCR-AUHSJZX-3B74G72-V5F6KLM-XGJ2KQ5"; autoAcceptFolders = true; };
+        "qnap-ts212" = { id = "6IHVZJZ-6KHTCME-2YYBMQ7-MN4JB4K-OBURXKK-HFI3I24-QWAEFKT-QSO4ZAR"; autoAcceptFolders = true; };
+      };
+      folders = {
+        "BigLens" = {
+          id = "62prt-kdyws";
+          path = "/mnt/wd4001b/history/BigLens";
+          devices = [ "hp800g3" "nixos-gaming" "nixos-macmini" ];
+        };
+        "EncFS" = {
+          id = "j6e46-4z2f7";
+          path = "/mnt/wd4001b/media/EncFS";
+          devices = [ "hp800g3" "nixos-gaming" "nixos-macmini" ];
+        };
+        "MobileLaura" = {
+          id = "moto_g_pro_8rrx-photos";
+          path = "/mnt/wd4001b/history/MobileLaura";
+          devices = [ "hp800g3" "nixos-macmini" ];
+        };
+        "MobileLuca" = {
+          id = "moto_g32_v6vm-photos";
+          path = "/mnt/wd4001b/history/MobileLuca";
+          devices = [ "hp800g3" "moto-g32" "nixos-gaming" "nixos-macmini" ];
+        };
+        "Music" = {
+          id = "an4zy-wuavw";
+          path = "/mnt/wd4001b/media/Music";
+          devices = [ "hp800g3" "nixos-gaming" "nixos-macmini" ];
+        };
+        "WhatsAppLaura" = {
+          id = "5i2yp-05gou";
+          path = "/mnt/wd4001b/history/WhatsAppLaura";
+          devices = [ "hp800g3" "nixos-macmini" ];
+        };
+        "WhatsAppLuca" = {
+          id = "tysor-1yp0m";
+          path = "/mnt/wd4001b/history/WhatsAppLuca";
+          devices = [ "hp800g3" "moto-g32" "nixos-gaming" "nixos-macmini" ];
+        };
+        "due" = {
+          id = "7bjjp-3xtez";
+          path = "/mnt/wd4001b/history/due";
+          devices = [ "hp800g3" "moto-g32" "nixos-gaming""nixos-macmini" ];
+        };
+        "CameraPapi" = {
+          id = "moto_g8_power_zqnh-photos";
+          path = "/mnt/wd4001b/history/CameraPapi";
+          #devices = [ "hp800g3" "nixos-gaming" "moto-g32" ];
+          devices = [ "qnap-ts212" ];
+        };
+        "WhatsAppPapi" = {
+          id = "sd1sl-9kgiw";
+          path = "/mnt/wd4001b/history/WhatsAppPapi";
+          #devices = [ "hp800g3" "nixos-gaming" "moto-g32" ];
+          devices = [ "qnap-ts212" ];
+        };
+      };
+    };
+  };
+
+  powerManagement.powertop.enable = true;
+
+  # Optimising the store
+  nix.optimise.automatic = true;
+
+  # Garbage collection
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 30d";
+  };
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
