@@ -57,6 +57,20 @@ sudo nixos-rebuild switch
 {{ end }}
 
 
+# HP 800 G3
+{{ if eq .chezmoi.hostname "hp800g3"}}
+
+echo "Replace configuration.nix"
+sudo rm -rf /etc/nixos/configuration.nix
+sudo ln -s /home/{{ .chezmoi.username }}/.config/nixos/configuration_hp800g3.nix /etc/nixos/configuration.nix
+
+echo "Now using: /home/{{ .chezmoi.username }}/.config/nixos/configuration_hp800g3.nix"
+
+sudo nixos-rebuild switch
+
+{{ end }}
+
+
 # Zimaboard 232
 {{ if eq .chezmoi.hostname "zimaboard"}}
 
