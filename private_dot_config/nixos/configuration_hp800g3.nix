@@ -103,9 +103,12 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
+    bitwarden-cli
     borgbackup
     btop
+    chezmoi
     cifs-utils
+    gh
     git
     helix
     hdparm
