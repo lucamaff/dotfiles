@@ -8,6 +8,7 @@
   imports =
     [ # Include the results of the hardware scan.
       /etc/nixos/hardware-configuration.nix
+      /home/luca/docker/urbackup/docker-compose.nix
     ];
 
   nixpkgs.config.allowUnfree = true;
@@ -16,15 +17,22 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  networking.hostName = "nixos-macmini"; # Define your hostname.
+  networking.hostName = "macmini"; # Define your hostname.
   #networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
   networking.networkmanager.enable = true;
 
-  networking.interfaces.enp1s0f0 = {
-    ipv4.addresses = [{
-      address = "192.168.1.2";
-      prefixLength = 24;
-    }];
+  networking = {
+    interfaces.enp1s0f0 = {
+      ipv4.addresses = [{
+        address = "192.168.178.102";
+        prefixLength = 24;
+      }];
+    };
+    defaultGateway = {
+      address = "192.168.178.1";
+      interface = "enp1s0f0 ";
+    };
+    nameservers = [ "192.168.178.1" ];
   };
 
   # Configure network proxy if necessary
@@ -55,17 +63,19 @@
     variant = "";
   };
 
-  #fileSystems."/mnt/data" = {
-    ##device = "/dev/disk/by-uuid/74eb8300-2ce3-451e-8281-eb3c5258c677";
-    #fsType = "ext4";
-    #options = [
-      #"users" # Allows any user to mount and unmount
-      #"nofail" # Prevent system from failing if this drive doesn't mount
-    #];
-  #};
-
+  # Original 2.5 disk from Mac Mini
   fileSystems."/mnt/ap1001b" = {
     device = "/dev/disk/by-uuid/28cd9aa3-77a0-4e59-b0b5-b013b2d08ae7";
+    fsType = "ext4";
+    options = [
+      "users" # Allows any user to mount and unmount
+      "nofail" # Prevent system from failing if this drive doesn't mount
+    ];
+  };
+
+  # WD xxternal USB disk
+  fileSystems."/mnt/wd5001b" = {
+    device = "/dev/disk/by-uuid/c3adb1ac-c332-4c71-bb2a-8cf0a182fbb4";
     fsType = "ext4";
     options = [
       "users" # Allows any user to mount and unmount
@@ -81,6 +91,7 @@
       "networkmanager"
       "wheel"
       "podman"
+      "immich"
     ];
     packages = with pkgs; [];
     shell = pkgs.fish;
@@ -95,6 +106,7 @@
     borgbackup
     btop
     chezmoi
+    compose2nix
     gh
     git
     helix
@@ -105,6 +117,7 @@
     nmap
     powertop
     starship
+    syncthing
     tmux
   ];
 
@@ -162,14 +175,16 @@
   services.syncthing = {
     enable = true;
     user = "luca";
-    dataDir = "/mnt/ap1001b";
+    dataDir = "/home/luca";
     configDir = "/home/luca/.config/syncthing";
     openDefaultPorts = true;
-    guiAddress = "192.168.1.2:8384";
+    #guiAddress = "192.168.178.102:8384";
+    guiAddress = "0.0.0.0:8384";
     overrideDevices = true;     # overrides any devices added or deleted through the WebUI
     overrideFolders = true;     # overrides any folders added or deleted through the WebUI
     settings = {
       devices = {
+        "penguin" = {id = "JAZH2ES-E7YNTS6-NJC5IPZ-CP74LRQ-CMQ2V5A-2LWGZFG-7O7PSYV-L56PKQN"; autoAcceptFolders = true; };
         "hp800g3" = { id = "GV2W7BL-S6HT5OP-EACXTAJ-347P2ZA-ADGDATV-LDFCV3H-4IMT6NL-5HSMYA2"; autoAcceptFolders = true; };
         "moto-g32" = { id = "J43GXHC-7SG4NRM-3OZ5Y3W-QTYBJGS-O6SQX2I-T2U42CR-W4DGE4Q-VKI2XAH"; autoAcceptFolders = true; };
         "nixos-gaming" = { id = "JXZZBVC-4CWRPBW-XOA52RJ-OHHANXK-XIHPRY5-SHTGQUH-UKFQM4M-EZGK3AT"; autoAcceptFolders = true; };
@@ -214,7 +229,13 @@
         "due" = {
           id = "7bjjp-3xtez";
           path = "/mnt/ap1001b/history/due";
-          devices = [ "hp800g3" "moto-g32" "nixos-gaming" "zimaboard" ];
+          devices = [ "penguin" "hp800g3" "moto-g32" "nixos-gaming" "zimaboard" ];
+        };
+        "borgRepoMACMINI" = {
+          id = "cd9rd-vvyvx";
+          path = "/mnt/ap1001b/backup";
+          devices = [ "zimaboard" ];
+          type = "sendonly";
         };
       };
     };
@@ -222,10 +243,9 @@
 
   # Navidrome
   services.navidrome = {
-    enable = false;
+    enable = true;
     settings = {
-      MusicFolder = "/mnt/data/media/Music/CD";
-      #DataFolder = "/mnt/data/navidrome/data";
+      MusicFolder = "/mnt/ap1001b/media/Music/CD";
       Address = "0.0.0.0";
       ImageCacheSize = "1GB";
       LastFM.ApiKey = "0987c2ad94f73d2bba753d7ce9123a65";
@@ -235,31 +255,33 @@
 
   # Plex
   services.plex = {
-    enable = false;
+    enable = true;
     openFirewall = true;
   };
 
   # Create folder for immich, where immich user can read/write
-  #systemd.tmpfiles.rules = [
-    #"d /mnt/data/immich 0771 luca immich -"
-  #];
+  systemd.tmpfiles.rules = [
+    "d /mnt/ap1001b/immich 2771 luca luca"
+  ];
   services.immich = {
-    enable = false;
-    mediaLocation = "/mnt/data/immich";
-    host = "nixos-macmini.tail035a.ts.net";
-    settings.server.externalDomain = "https://nixos-macmini.tail035a.ts.net";
+    enable = true;
+    mediaLocation = "/mnt/ap1001b/immich";
+    host = "macmini.tail035a.ts.net";
+    settings.server.externalDomain = "https://macmini.tail035a.ts.net";
   };
+  users.users.immich.extraGroups = [ "luca" ];
+  #users.groups.luca.members = [ "immich" ];
 
   services.transmission = {
-    enable = false;
+    enable = true;
     user = "luca";
     openFirewall = true;
     openRPCPort = true;
     settings = {
       rpc-bind-address = "0.0.0.0"; #Bind to own IP
       rpc-whitelist = "127.0.0.1 192.168.*.*";  # Whitelist all machines in this network
-      rpc-host-whitelist = "nixos-macmini.fritz.box";
-      download-dir = "/mnt/data/media/download";
+      rpc-host-whitelist = "macmini.fritz.box";
+      download-dir = "/mnt/ap1001b/media/download";
       encryption = 2;
       alt-speed-time-enabled = true;
       alt-speed-time-begin = 480;
@@ -268,9 +290,9 @@
   };
 
   # auto standby
-  services.cron.systemCronJobs = [
-      "30 22 * * * root rtcwake -m mem --date +10h"
-  ];
+  #services.cron.systemCronJobs = [
+      #"30 22 * * * root rtcwake -m mem --date +10h"
+  #];
 
   powerManagement.powertop.enable = true;
   
