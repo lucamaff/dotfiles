@@ -124,6 +124,8 @@
     ncdu
     parted
     smartmontools
+    starship
+    syncthing
     tmux
     vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     wavemon
@@ -146,7 +148,7 @@
   services.openssh.enable = true;
 
   services.plex = {
-    enable = true;
+    enable = false;
     openFirewall = true;
   };
 
@@ -160,11 +162,11 @@
     overrideFolders = true;     # overrides any folders added or deleted through the WebUI
     settings = {
       devices = {
-        "Chromebook" = {id = "CKVNSWH-FOJGT4C-YGNFNN3-OEIJ2BU-MWVIY37-TVR6HBI-NKQKWTL-SNLXDAO"; autoAcceptFolders = true; };
+        "penguin" = {id = "JAZH2ES-E7YNTS6-NJC5IPZ-CP74LRQ-CMQ2V5A-2LWGZFG-7O7PSYV-L56PKQN"; autoAcceptFolders = true; };
         "moto-g32" = { id = "J43GXHC-7SG4NRM-3OZ5Y3W-QTYBJGS-O6SQX2I-T2U42CR-W4DGE4Q-VKI2XAH"; autoAcceptFolders = true; };
         "nixos-gaming" = { id = "JXZZBVC-4CWRPBW-XOA52RJ-OHHANXK-XIHPRY5-SHTGQUH-UKFQM4M-EZGK3AT"; autoAcceptFolders = true; };
         "nixos-macmini" = { id = "NCANLZ5-ZM3WPT5-PE6X36O-YQLOPCR-AUHSJZX-3B74G72-V5F6KLM-XGJ2KQ5"; autoAcceptFolders = true; };
-        "qnap-ts212" = { id = "6IHVZJZ-6KHTCME-2YYBMQ7-MN4JB4K-OBURXKK-HFI3I24-QWAEFKT-QSO4ZAR"; autoAcceptFolders = true; };
+        "PCMamiPapi" = { id = "E6ZAXTG-JD5UBHV-OS2AJ2R-2SUQ6DE-M6BQP4R-U7O6Z4L-U6DYZF7-2USXJAC"; autoAcceptFolders = true; };
         "zimaboard" = { id = "NXOCWQY-TLCJGYA-UMQRFQM-ZD2LS5X-5RQY4TH-4DXZZC4-KKOWX32-IHPMRQL"; autoAcceptFolders = true; };
       };
       folders = {
@@ -206,19 +208,23 @@
         "due" = {
           id = "7bjjp-3xtez";
           path = "/mnt/data/history/due";
-          devices = [ "Chromebook" "moto-g32" "nixos-gaming""nixos-macmini" "zimaboard" ];
+          devices = [ "penguin" "moto-g32" "nixos-gaming""nixos-macmini" "zimaboard" ];
         };
         "CameraPapi" = {
           id = "moto_g8_power_zqnh-photos";
           path = "/mnt/data/history/CameraPapi";
-          #devices = [ "nixos-gaming" "moto-g32" ];
-          devices = [ "qnap-ts212" ];
+          devices = [ "PCMamiPapi" "zimaboard" ];
         };
         "WhatsAppPapi" = {
           id = "sd1sl-9kgiw";
           path = "/mnt/data/history/WhatsAppPapi";
-          #devices = [ "nixos-gaming" "moto-g32" ];
-          devices = [ "qnap-ts212" ];
+          devices = [ "PCMamiPapi" "zimaboard" ];
+        };
+        "borgRepoHP800G3" = {
+          id = "erpf3-5ey2u";
+          path = "/mnt/data/backup/borg";
+          devices = [ "zimaboard" ];
+          type = "sendonly";
         };
       };    
     };    
@@ -318,7 +324,7 @@
 
   # Navidrome
   services.navidrome = {
-    enable = true;
+    enable = false;
     settings = {
       MusicFolder = "/mnt/data/media/Music/CD";
       Address = "0.0.0.0";
@@ -334,7 +340,7 @@
     #"d /mnt/data/media/deluge 0771 deluge deluge -"
   ];
   services.immich = {
-    enable = true;
+    enable = false;
     mediaLocation = "/mnt/data/immich";
     host = "hp800g3.tail035a.ts.net";
     settings.server.externalDomain = "https://hp800g3.tail035a.ts.net";
@@ -404,9 +410,9 @@
   #};
 
   # auto standby
-  services.cron.systemCronJobs = [
-      "00 00 * * * root rtcwake -m disk --date +6h"
-  ];
+  #services.cron.systemCronJobs = [
+      #"30 20 * * * root rtcwake -m disk --date +12h"
+  #];
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
