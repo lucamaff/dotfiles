@@ -13,6 +13,7 @@
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+  boot.loader.timeout = 3;
   # Use this if /boot becomes full
   boot.loader.systemd-boot.configurationLimit = 16;
   # Setting RTC time standard to localtime, compatible with Windows in its default configuration
@@ -28,13 +29,13 @@
   # Enable networking
   networking.networkmanager.enable = true;
 
-  networking.interfaces.enp11s0.useDHCP = false;
-  networking.interfaces.enp11s0 = {
-    ipv4.addresses = [{
-      address = "192.168.1.30";
-      prefixLength = 24;
-    }];
-  };
+  # networking.interfaces.enp11s0.useDHCP = false;
+  # networking.interfaces.enp11s0 = {
+  #   ipv4.addresses = [{
+  #     address = "192.168.1.30";
+  #     prefixLength = 24;
+  #   }];
+  # };
 
   # Set your time zone.
   time.timeZone = "Europe/Rome";
@@ -62,7 +63,7 @@
   services.xserver.desktopManager.gnome.enable = true;
 
   services.gnome.gnome-keyring.enable = true;
-  security.pam.services.gdm.enableGnomeKeyring = true;
+  security.pam.services.login.enableGnomeKeyring = true;
   
 
   # Configure keymap in X11
@@ -159,6 +160,17 @@
     ];
   };
 
+  # Seagate 2TB HD
+  fileSystems."/mnt/sg2001b" = {
+    device = "/dev/disk/by-uuid/5d233d8a-0387-4d42-a41b-78bd5cf0585d";
+    fsType = "ext4";
+    options = [
+      "users" # Allows any user to mount and unmount
+      "nofail" # Prevent system from failing if this drive doesn't mount
+      "exec" # Needed by Steam library
+    ];
+  };
+
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.luca = {
     isNormalUser = true;
@@ -170,13 +182,15 @@
     shell = pkgs.fish;
   };
 
+  programs.fish.enable = true;
+
   # Enable automatic login for the user.
-  services.displayManager.autoLogin.enable = false;
+  services.displayManager.autoLogin.enable = true;
   services.displayManager.autoLogin.user = "luca";
 
   # Workaround for GNOME autologin: https://github.com/NixOS/nixpkgs/issues/103746#issuecomment-945091229
-  systemd.services."getty@tty1".enable = false;
-  systemd.services."autovt@tty1".enable = false;
+  systemd.services."getty@tty1".enable = true;
+  systemd.services."autovt@tty1".enable = true;
 
   # Install firefox.
   programs.firefox.enable = true;
@@ -187,8 +201,6 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-  #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-  #  wget
     ansible
     avidemux
     awscli
@@ -199,11 +211,13 @@
     chezmoi
     chromium
     colordiff
+    compose2nix
     conda
     distrobox
     encfs
     exfatprogs
     ffmpeg-full
+    freefilesync
     freetube
     gh
     gimp-with-plugins
@@ -215,12 +229,10 @@
     heroic
     hfsprogs    
     htop
-    ifuse
     iperf3
     jetbrains.pycharm-community
     keepassxc
     kopia
-    libimobiledevice
     libreoffice
     logseq
     lutris
@@ -234,24 +246,28 @@
     gnomeExtensions.pano
     gnomeExtensions.wayland-or-x11
     mangohud
-    owncloud-client
+    mangojuice
     pdf4qt
     picard
     pika-backup
     protonup
+    protonup-qt
     qgis
     quickemu
     starship
     subversionClient
+    syncthing
     telegram-desktop
     teams-for-linux
     ticktick
     tmux
     tribler
+    urbackup-client
     vlc
     vscodium
     wavemon
     wget
+    whatsie
   ];
 
   services.udev.packages = with pkgs; [ gnome-settings-daemon ];
@@ -263,12 +279,16 @@
 
   nixpkgs.config.permittedInsecurePackages = [
     "electron-27.3.11"
+    "electron-33.4.11"
   ];
 
-  programs.fish.enable = true;
-
+  # Tailscale VPN
   services.tailscale.enable = true;
 
+  # Teamviewer
+  services.teamviewer.enable = true;
+
+  # Syncthing
   services.syncthing = {
     enable = true;
     user = "luca";
@@ -280,63 +300,55 @@
     overrideFolders = true;     # overrides any folders added or deleted through the WebUI
     settings = {
       devices = {
-        "nixos-macmini" = { id = "NCANLZ5-ZM3WPT5-PE6X36O-YQLOPCR-AUHSJZX-3B74G72-V5F6KLM-XGJ2KQ5"; autoAcceptFolders = true; };
+        "penguin" = {id = "JAZH2ES-E7YNTS6-NJC5IPZ-CP74LRQ-CMQ2V5A-2LWGZFG-7O7PSYV-L56PKQN"; autoAcceptFolders = true; };
         "hp800g3" = { id = "GV2W7BL-S6HT5OP-EACXTAJ-347P2ZA-ADGDATV-LDFCV3H-4IMT6NL-5HSMYA2"; autoAcceptFolders = true; };
-        "zimaboard" = { id = "NXOCWQY-TLCJGYA-UMQRFQM-ZD2LS5X-5RQY4TH-4DXZZC4-KKOWX32-IHPMRQL"; autoAcceptFolders = true; };
         "moto-g32" = { id = "J43GXHC-7SG4NRM-3OZ5Y3W-QTYBJGS-O6SQX2I-T2U42CR-W4DGE4Q-VKI2XAH"; autoAcceptFolders = true; };
+        "nixos-macmini" = { id = "NCANLZ5-ZM3WPT5-PE6X36O-YQLOPCR-AUHSJZX-3B74G72-V5F6KLM-XGJ2KQ5"; autoAcceptFolders = true; };
+        "zimaboard" = { id = "NXOCWQY-TLCJGYA-UMQRFQM-ZD2LS5X-5RQY4TH-4DXZZC4-KKOWX32-IHPMRQL"; autoAcceptFolders = true; };
       };
       folders = {
         "BigLens" = {
           id = "62prt-kdyws";
           path = "/mnt/data/history/BigLens";
-          devices = [ "nixos-macmini" "hp800g3" "zimaboard" ];
+          devices = [ "hp800g3" "nixos-macmini" "zimaboard" ];
         };
         "EncFS" = {
           id = "j6e46-4z2f7";
           path = "/mnt/data/media/EncFS";
-          devices = [ "nixos-macmini" "hp800g3" "zimaboard" ];
+          devices = [ "hp800g3" "nixos-macmini" "zimaboard" ];
         };
         "MobileLuca" = {
           id = "moto_g32_v6vm-photos";
           path = "/mnt/data/history/MobileLuca";
-          devices = [ "nixos-macmini" "hp800g3" "zimaboard" "moto-g32" ];
+          devices = [ "hp800g3" "moto-g32" "nixos-macmini" "zimaboard" ];
         };
         "MobileLaura" = {
           id = "moto_g_pro_8rrx-photos";
           path = "/mnt/data/history/MobileLaura";
-          devices = [ "nixos-macmini" "hp800g3" "zimaboard" ];
+          devices = [ "hp800g3" "nixos-macmini" "zimaboard" ];
         };
         "Music" = {
           id = "an4zy-wuavw";
           path = "/mnt/data/media/Music";
-          devices = [ "nixos-macmini" "hp800g3" "zimaboard" ];
+          devices = [ "hp800g3" "nixos-macmini" "zimaboard" ];
         };
         "WhatsAppLuca" = {
           id = "tysor-1yp0m";
           path = "/mnt/data/history/WhatsAppLuca";
-          devices = [ "nixos-macmini" "hp800g3" "zimaboard" "moto-g32" ];
+          devices = [ "hp800g3" "moto-g32" "nixos-macmini" "zimaboard" ];
         };
         "due" = {
           id = "7bjjp-3xtez";
           path = "/home/luca/MEGA/due";
-          devices = [ "nixos-macmini" "hp800g3" "zimaboard" "moto-g32" ];
+          devices = [ "penguin" "hp800g3" "moto-g32" "nixos-macmini" "zimaboard" ];
         };
       };
     };
   };
 
-  # Docker needed by JRC work
+  # Docker (JRC work)
   virtualisation.docker.enable = true;
   users.extraGroups.docker.members = [ "luca" ];
-
-  # facilitate the deployment of large language models
-  services.ollama = {
-    enable = true;
-    acceleration = "cuda";
-  };
-
-  # Access iOS devices
-  services.usbmuxd.enable = true;
 
   # Optimising the store
   nix.settings.auto-optimise-store = true;
@@ -347,7 +359,6 @@
     dates = "weekly";
     options = "--delete-older-than 90d";
   };
-
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
