@@ -11,6 +11,10 @@
       /home/luca/docker/urbackup/docker-compose.nix
     ];
 
+  nixpkgs.config.permittedInsecurePackages = [
+    "broadcom-sta-6.30.223.271-57-6.12.41"
+  ];
+
   nixpkgs.config.allowUnfree = true;
 
   # Bootloader.
@@ -165,6 +169,12 @@
         "read only" = "no";
         "guest ok" = "no";
       };
+      wd5001b = {
+        path = "/mnt/wd5001b";
+        browseable = "yes";
+        "read only" = "no";
+        "guest ok" = "no";
+      };
     };
   };
   # Browsing samba shares with GVFS
@@ -184,11 +194,11 @@
     overrideFolders = true;     # overrides any folders added or deleted through the WebUI
     settings = {
       devices = {
-        "penguin" = {id = "JAZH2ES-E7YNTS6-NJC5IPZ-CP74LRQ-CMQ2V5A-2LWGZFG-7O7PSYV-L56PKQN"; autoAcceptFolders = true; };
-        "hp800g3" = { id = "GV2W7BL-S6HT5OP-EACXTAJ-347P2ZA-ADGDATV-LDFCV3H-4IMT6NL-5HSMYA2"; autoAcceptFolders = true; };
-        "moto-g32" = { id = "J43GXHC-7SG4NRM-3OZ5Y3W-QTYBJGS-O6SQX2I-T2U42CR-W4DGE4Q-VKI2XAH"; autoAcceptFolders = true; };
-        "nixos-gaming" = { id = "JXZZBVC-4CWRPBW-XOA52RJ-OHHANXK-XIHPRY5-SHTGQUH-UKFQM4M-EZGK3AT"; autoAcceptFolders = true; };
-        "zimaboard" = { id = "NXOCWQY-TLCJGYA-UMQRFQM-ZD2LS5X-5RQY4TH-4DXZZC4-KKOWX32-IHPMRQL"; autoAcceptFolders = true; };
+        "penguin" = {id = "JAZH2ES-E7YNTS6-NJC5IPZ-CP74LRQ-CMQ2V5A-2LWGZFG-7O7PSYV-L56PKQN"; };
+        "hp800g3" = { id = "GV2W7BL-S6HT5OP-EACXTAJ-347P2ZA-ADGDATV-LDFCV3H-4IMT6NL-5HSMYA2"; };
+        "moto-g32" = { id = "J43GXHC-7SG4NRM-3OZ5Y3W-QTYBJGS-O6SQX2I-T2U42CR-W4DGE4Q-VKI2XAH"; };
+        "nixos-gaming" = { id = "JXZZBVC-4CWRPBW-XOA52RJ-OHHANXK-XIHPRY5-SHTGQUH-UKFQM4M-EZGK3AT"; };
+        "zimaboard" = { id = "NXOCWQY-TLCJGYA-UMQRFQM-ZD2LS5X-5RQY4TH-4DXZZC4-KKOWX32-IHPMRQL"; };
       };
       folders = {
         "BigLens" = {
@@ -243,7 +253,7 @@
 
   # Navidrome
   services.navidrome = {
-    enable = true;
+    enable = false;
     settings = {
       MusicFolder = "/mnt/ap1001b/media/Music/CD";
       Address = "0.0.0.0";
@@ -255,7 +265,7 @@
 
   # Plex
   services.plex = {
-    enable = true;
+    enable = false;
     openFirewall = true;
   };
 
@@ -264,16 +274,15 @@
     "d /mnt/ap1001b/immich 2771 luca luca"
   ];
   services.immich = {
-    enable = true;
+    enable = false;
     mediaLocation = "/mnt/ap1001b/immich";
     host = "macmini.tail035a.ts.net";
     settings.server.externalDomain = "https://macmini.tail035a.ts.net";
   };
-  users.users.immich.extraGroups = [ "luca" ];
-  #users.groups.luca.members = [ "immich" ];
+  #users.users.immich.extraGroups = [ "luca" ];
 
   services.transmission = {
-    enable = true;
+    enable = false;
     user = "luca";
     openFirewall = true;
     openRPCPort = true;
@@ -284,8 +293,10 @@
       download-dir = "/mnt/ap1001b/media/download";
       encryption = 2;
       alt-speed-time-enabled = true;
+      alt-speed-up = 500;
+      alt-speed-down = 500;
       alt-speed-time-begin = 480;
-      alt-speed-time-end = 1320;
+      alt-speed-time-end = 1380;
     };
   };
 
