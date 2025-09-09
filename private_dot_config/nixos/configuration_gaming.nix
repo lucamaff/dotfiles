@@ -82,7 +82,7 @@
   };
 
   # Enable sound with pipewire.
-  hardware.pulseaudio.enable = false;
+  services.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
@@ -151,23 +151,14 @@
 
   # Fanxiang 2TB SSD
   fileSystems."/mnt/fx2001b" = {
-    device = "/dev/disk/by-uuid/37bf1f45-8377-40d4-97c0-126ec03ddae2";
-    fsType = "ext4";
+    device = "/dev/disk/by-uuid/33C2-B1C4";
+    fsType = "exfat";
     options = [
       "users" # Allows any user to mount and unmount
       "nofail" # Prevent system from failing if this drive doesn't mount
       "exec" # Needed by Steam library
-    ];
-  };
-
-  # Seagate 2TB HD
-  fileSystems."/mnt/sg2001b" = {
-    device = "/dev/disk/by-uuid/5d233d8a-0387-4d42-a41b-78bd5cf0585d";
-    fsType = "ext4";
-    options = [
-      "users" # Allows any user to mount and unmount
-      "nofail" # Prevent system from failing if this drive doesn't mount
-      "exec" # Needed by Steam library
+      "uid=1000"
+      "gid=100"
     ];
   };
 
@@ -207,12 +198,15 @@
     bitwarden-cli
     bitwarden-desktop
     bottles
+    brave
     btop
     chezmoi
     chromium
     colordiff
     compose2nix
     conda
+    coreutils
+    dmidecode
     distrobox
     encfs
     exfatprogs
@@ -244,6 +238,7 @@
     gnomeExtensions.forge
     gnomeExtensions.mock-tray
     gnomeExtensions.pano
+    gnomeExtensions.system-monitor
     gnomeExtensions.wayland-or-x11
     mangohud
     mangojuice
@@ -252,6 +247,7 @@
     pika-backup
     protonup
     protonup-qt
+    qbittorrent
     qgis
     quickemu
     starship
@@ -262,7 +258,9 @@
     ticktick
     tmux
     tribler
+    udftools
     urbackup-client
+    vim
     vlc
     vscodium
     wavemon
@@ -273,20 +271,28 @@
   services.udev.packages = with pkgs; [ gnome-settings-daemon ];
 
   # Steam
-  programs.steam.enable = true;
-  programs.steam.gamescopeSession.enable = true;
-  programs.gamemode.enable = true;
+  programs.steam.enable = false;
+  programs.steam.gamescopeSession.enable = false;
+  programs.gamemode.enable = false;
 
   nixpkgs.config.permittedInsecurePackages = [
     "electron-27.3.11"
     "electron-33.4.11"
   ];
 
+  # open-source implementation of Nvidia’s Moonlight game streaming 
+  services.sunshine = {
+    enable = false;
+    autoStart = false;
+    capSysAdmin = true;
+    openFirewall = true;
+  };
+
   # Tailscale VPN
   services.tailscale.enable = true;
 
   # Teamviewer
-  services.teamviewer.enable = true;
+  services.teamviewer.enable = false;
 
   # Syncthing
   services.syncthing = {
@@ -300,11 +306,12 @@
     overrideFolders = true;     # overrides any folders added or deleted through the WebUI
     settings = {
       devices = {
-        "penguin" = {id = "JAZH2ES-E7YNTS6-NJC5IPZ-CP74LRQ-CMQ2V5A-2LWGZFG-7O7PSYV-L56PKQN"; autoAcceptFolders = true; };
-        "hp800g3" = { id = "GV2W7BL-S6HT5OP-EACXTAJ-347P2ZA-ADGDATV-LDFCV3H-4IMT6NL-5HSMYA2"; autoAcceptFolders = true; };
-        "moto-g32" = { id = "J43GXHC-7SG4NRM-3OZ5Y3W-QTYBJGS-O6SQX2I-T2U42CR-W4DGE4Q-VKI2XAH"; autoAcceptFolders = true; };
-        "nixos-macmini" = { id = "NCANLZ5-ZM3WPT5-PE6X36O-YQLOPCR-AUHSJZX-3B74G72-V5F6KLM-XGJ2KQ5"; autoAcceptFolders = true; };
-        "zimaboard" = { id = "NXOCWQY-TLCJGYA-UMQRFQM-ZD2LS5X-5RQY4TH-4DXZZC4-KKOWX32-IHPMRQL"; autoAcceptFolders = true; };
+        "penguin" = {id = "JAZH2ES-E7YNTS6-NJC5IPZ-CP74LRQ-CMQ2V5A-2LWGZFG-7O7PSYV-L56PKQN"; };
+        "hp800g3" = { id = "GV2W7BL-S6HT5OP-EACXTAJ-347P2ZA-ADGDATV-LDFCV3H-4IMT6NL-5HSMYA2"; };
+        "moto-g32" = { id = "J43GXHC-7SG4NRM-3OZ5Y3W-QTYBJGS-O6SQX2I-T2U42CR-W4DGE4Q-VKI2XAH"; };
+        "moto-g54-luca" = { id = "34SJ4HM-6WEUPL2-HA7OVOD-OKTDUNE-RUGYPFV-VQBM3QR-FYJFYIB-OEP3DQ7"; };
+        "nixos-macmini" = { id = "NCANLZ5-ZM3WPT5-PE6X36O-YQLOPCR-AUHSJZX-3B74G72-V5F6KLM-XGJ2KQ5"; };
+        "zimaboard" = { id = "NXOCWQY-TLCJGYA-UMQRFQM-ZD2LS5X-5RQY4TH-4DXZZC4-KKOWX32-IHPMRQL"; };
       };
       folders = {
         "BigLens" = {
@@ -320,7 +327,7 @@
         "MobileLuca" = {
           id = "moto_g32_v6vm-photos";
           path = "/mnt/data/history/MobileLuca";
-          devices = [ "hp800g3" "moto-g32" "nixos-macmini" "zimaboard" ];
+          devices = [ "hp800g3" "nixos-macmini" "zimaboard" "moto-g54-luca" ];
         };
         "MobileLaura" = {
           id = "moto_g_pro_8rrx-photos";
@@ -335,12 +342,12 @@
         "WhatsAppLuca" = {
           id = "tysor-1yp0m";
           path = "/mnt/data/history/WhatsAppLuca";
-          devices = [ "hp800g3" "moto-g32" "nixos-macmini" "zimaboard" ];
+          devices = [ "hp800g3" "nixos-macmini" "zimaboard" "moto-g54-luca" ];
         };
         "due" = {
           id = "7bjjp-3xtez";
           path = "/home/luca/MEGA/due";
-          devices = [ "penguin" "hp800g3" "moto-g32" "nixos-macmini" "zimaboard" ];
+          devices = [ "hp800g3" "nixos-macmini" "zimaboard" "penguin" "moto-g54-luca" ];
         };
       };
     };
@@ -357,7 +364,7 @@
   nix.gc = {
     automatic = true;
     dates = "weekly";
-    options = "--delete-older-than 90d";
+    options = "--delete-older-than 60d";
   };
 
   # Some programs need SUID wrappers, can be configured further or are
