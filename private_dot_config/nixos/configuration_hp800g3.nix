@@ -314,7 +314,7 @@
   powerManagement.powertop.enable = true;
   
   services.cron.systemCronJobs = [
-      #"30 20 * * * root rtcwake -m disk --date +12h"  # auto standby
+      "30 01 * * * root rtcwake -m disk --date +7h"  # auto standby
       "@reboot root sleep 20 && systemctl restart navidrome.service"  # quick hack to wait for all disks
       "@reboot root sleep 22 && systemctl restart syncthing.service"  # quick hack to wait for all disks
       "@reboot root sleep 24 && systemctl restart transmission.service"  # quick hack to wait for all disks
