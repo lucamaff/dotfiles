@@ -8,10 +8,7 @@
   imports =
     [ # Include the results of the hardware scan.
       /etc/nixos/hardware-configuration.nix
-      #./nextcloud.nix
     ];
-
-  powerManagement.powertop.enable = true;
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
@@ -20,38 +17,116 @@
 
   networking.hostName = "hp800g3"; # Define your hostname.
 
-  # Configure network proxy if necessary
-  # networking.proxy.default = "http://user:password@proxy:port/";
-  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
+  # 4TB Seagate parity disk
+  fileSystems."/mnt/diskp" = 
+  {
+    device = "/dev/disk/by-uuid/f49960b7-f5b2-4844-b8ea-244bfbe97aca"; 
+    fsType = "xfs"; 
+    options = [
+      "users" # Allows any user to mount and unmount
+      "nofail" # Prevent system from failing if this drive doesn't mount
+    ];
+  }; 
+  
+  # 1TB Seagate data disk
+  fileSystems."/mnt/sg1001b" = 
+  {
+    device = "/dev/disk/by-uuid/4c0551bd-936d-4722-9e66-72108c640156"; 
+    fsType = "btrfs"; 
+    options = [
+      "users" # Allows any user to mount and unmount
+      "nofail" # Prevent system from failing if this drive doesn't mount
+    ];
+  };
 
-  # Enables wireless support via wpa_supplicant.
-  networking.wireless = {
+  # 2TB Seagate data disk
+  fileSystems."/mnt/sg2001b" = 
+  {
+    device = "/dev/disk/by-uuid/5d233d8a-0387-4d42-a41b-78bd5cf0585d"; 
+    fsType = "ext4"; 
+    options = [
+      "users" # Allows any user to mount and unmount
+      "nofail" # Prevent system from failing if this drive doesn't mount
+    ];
+  };
+
+  # 3TB Toshiba data disk
+  fileSystems."/mnt/to3001b" = 
+  {
+    device = "/dev/disk/by-uuid/eab4964d-f202-4874-b7d9-a343e0a6c1ee"; 
+    fsType = "btrfs"; 
+    options = [
+      "users" # Allows any user to mount and unmount
+      "nofail" # Prevent system from failing if this drive doesn't mount
+    ];
+  };
+
+  # Snapraid
+  services.snapraid = {
     enable = true;
-    userControlled.enable = true;
-    networks = {
-      alpha = {
-        pskRaw = "ee94481d94ce6e66632ce161ae07079e97679a21bb5ecb8ed0b1f8bd4cc1f586";
+    dataDisks = {
+      d1 = "/mnt/to3001b";
+      d2 = "/mnt/sg2001b";
+      d3 = "/mnt/sg1001b";
+    };
+    exclude = [
+      "/lost+found/"
+      "appdata/"
+    ];
+    parityFiles = [
+      "/mnt/diskp/snapraid.parity"
+    ];
+    contentFiles = [
+      "/var/snapraid.content"
+      "/mnt/to3001b/snapraid.content"
+      "/mnt/sg2001b/snapraid.content"
+      "/mnt/sg1001b/snapraid.content"
+    ];
+  };
+
+  # MergerFS to have multiple disk in a single path
+  fileSystems."/mnt/data" = {
+    device = "/mnt/sg1001b:/mnt/sg2001b:/mnt/to3001b"; # multiple disks --> device = "/mnt/data1:/mnt/data2";
+    fsType = "fuse.mergerfs";
+    options = [
+        "cache.files=partial"
+        "dropcacheonclose=true"
+        "category.create=epmfs" # path preserving algorithm
+      ];
+  };
+
+  # Share folder on the network
+  services.samba = {
+    enable = true;
+    openFirewall = true;
+
+    # You will still need to set up the user accounts to begin with:
+    # $ sudo smbpasswd -a yourusername
+
+    settings = {
+      global = {
+        browseable = "yes";
+        "smb encrypt" = "required";
+      };
+
+      homes = {
+        browseable = "no";  # note: each home will be browseable; the "homes" share will not.
+        "read only" = "no";
+        "guest ok" = "no";
+      };
+      data = {
+        path = "/mnt/data";
+        browseable = "yes";
+        "read only" = "no";
+        "guest ok" = "no";
       };
     };
   };
+  # Browsing samba shares with GVFS
+  services.gvfs.enable = true;
 
-  networking.interfaces.wlp1s0.ipv4.addresses = [ {
-    address = "192.168.178.101";
-    prefixLength = 24;
-  } ];
-  networking.defaultGateway = "192.168.178.1";
-  networking.nameservers = [ "192.168.178.1" ];
-
-  # Disable networking, I use only wifi statically defined
-  networking.networkmanager.enable = false;
-  networking.networkmanager.unmanaged = [
-    "*" "except:type:wwan" "except:type:gsm"
-  ];
-
-  networking.interfaces.eno1.ipv4.addresses = [{
-    address = "192.168.1.11";
-    prefixLength = 24;
-  }];
+  # Use nmcli to setup wifi connection
+  networking.networkmanager.enable = true;
 
   # Set your time zone.
   time.timeZone = "Europe/Rome";
@@ -86,19 +161,15 @@
     shell = pkgs.fish;
   };
 
-  #virtualisation = {
-    #podman = {
-      #enable = true;
-      ## Create a `docker` alias for podman, to use it as a drop-in replacement
-      #dockerCompat = true;
-      ## Required for containers under podman-compose to be able to talk to each other.
-      #defaultNetwork.settings.dns_enabled = true; # release 23.05
-    #};
-    #oci-containers.backend = "podman";
-  #};
-
   # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
+  nixpkgs = {
+    config = {
+      allowUnfree = true;
+      #packageOverrides = pkgs: {
+        #unstable = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz") {};
+      #};
+    };
+  };
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
@@ -115,23 +186,17 @@
     hd-idle
     htop
     iperf3
-    jellyfin
-    jellyfin-web
-    jellyfin-ffmpeg
     megacmd
     mergerfs
     mergerfs-tools
     ncdu
-    parted
     smartmontools
     starship
     syncthing
     tmux
-    vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     wavemon
     wget
     xfsprogs
-    yt-dlp
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -147,11 +212,7 @@
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
 
-  services.plex = {
-    enable = false;
-    openFirewall = true;
-  };
-
+  # Syncthing
   services.syncthing = {
     enable = true;
     user = "luca";
@@ -162,53 +223,53 @@
     overrideFolders = true;     # overrides any folders added or deleted through the WebUI
     settings = {
       devices = {
-        "penguin" = {id = "JAZH2ES-E7YNTS6-NJC5IPZ-CP74LRQ-CMQ2V5A-2LWGZFG-7O7PSYV-L56PKQN"; autoAcceptFolders = true; };
-        "moto-g32" = { id = "J43GXHC-7SG4NRM-3OZ5Y3W-QTYBJGS-O6SQX2I-T2U42CR-W4DGE4Q-VKI2XAH"; autoAcceptFolders = true; };
-        "nixos-gaming" = { id = "JXZZBVC-4CWRPBW-XOA52RJ-OHHANXK-XIHPRY5-SHTGQUH-UKFQM4M-EZGK3AT"; autoAcceptFolders = true; };
-        "nixos-macmini" = { id = "NCANLZ5-ZM3WPT5-PE6X36O-YQLOPCR-AUHSJZX-3B74G72-V5F6KLM-XGJ2KQ5"; autoAcceptFolders = true; };
-        "PCMamiPapi" = { id = "E6ZAXTG-JD5UBHV-OS2AJ2R-2SUQ6DE-M6BQP4R-U7O6Z4L-U6DYZF7-2USXJAC"; autoAcceptFolders = true; };
-        "zimaboard" = { id = "NXOCWQY-TLCJGYA-UMQRFQM-ZD2LS5X-5RQY4TH-4DXZZC4-KKOWX32-IHPMRQL"; autoAcceptFolders = true; };
+        "penguin" = {id = "JAZH2ES-E7YNTS6-NJC5IPZ-CP74LRQ-CMQ2V5A-2LWGZFG-7O7PSYV-L56PKQN"; };
+        "moto-g54-luca" = { id = "34SJ4HM-6WEUPL2-HA7OVOD-OKTDUNE-RUGYPFV-VQBM3QR-FYJFYIB-OEP3DQ7"; };
+        "nixos-gaming" = { id = "JXZZBVC-4CWRPBW-XOA52RJ-OHHANXK-XIHPRY5-SHTGQUH-UKFQM4M-EZGK3AT"; };
+        "macmini" = { id = "NCANLZ5-ZM3WPT5-PE6X36O-YQLOPCR-AUHSJZX-3B74G72-V5F6KLM-XGJ2KQ5"; };
+        "PCMamiPapi" = { id = "E6ZAXTG-JD5UBHV-OS2AJ2R-2SUQ6DE-M6BQP4R-U7O6Z4L-U6DYZF7-2USXJAC"; };
+        "zimaboard" = { id = "NXOCWQY-TLCJGYA-UMQRFQM-ZD2LS5X-5RQY4TH-4DXZZC4-KKOWX32-IHPMRQL"; };
       };
       folders = {
         "BigLens" = {
           id = "62prt-kdyws";
           path = "/mnt/data/history/BigLens";
-          devices = [ "nixos-gaming" "nixos-macmini" "zimaboard" ];
+          devices = [ "nixos-gaming" "macmini" "zimaboard" ];
         };
         "EncFS" = {
           id = "j6e46-4z2f7";
           path = "/mnt/data/media/EncFS";
-          devices = [ "nixos-gaming" "nixos-macmini" "zimaboard" ];
+          devices = [ "nixos-gaming" "macmini" "zimaboard" ];
         };
         "MobileLaura" = {
           id = "moto_g_pro_8rrx-photos";
           path = "/mnt/data/history/MobileLaura";
-          devices = [ "nixos-macmini"  "zimaboard"];
+          devices = [ "macmini" "zimaboard"];
         };
         "MobileLuca" = {
           id = "moto_g32_v6vm-photos";
           path = "/mnt/data/history/MobileLuca";
-          devices = [ "moto-g32" "nixos-gaming" "nixos-macmini" "zimaboard" ];
+          devices = [ "nixos-gaming" "macmini" "zimaboard" "moto-g54-luca" ];
         };
         "Music" = {
           id = "an4zy-wuavw";
           path = "/mnt/data/media/Music";
-          devices = [ "nixos-gaming" "nixos-macmini" "zimaboard" ];
+          devices = [ "nixos-gaming" "macmini" "zimaboard" ];
         };
         "WhatsAppLaura" = {
           id = "5i2yp-05gou";
           path = "/mnt/data/history/WhatsAppLaura";
-          devices = [ "nixos-macmini" "zimaboard" ];
+          devices = [ "macmini" "zimaboard" ];
         };
         "WhatsAppLuca" = {
           id = "tysor-1yp0m";
           path = "/mnt/data/history/WhatsAppLuca";
-          devices = [ "moto-g32" "nixos-gaming" "nixos-macmini" "zimaboard" ];
+          devices = [ "nixos-gaming" "macmini" "zimaboard" "moto-g54-luca" ];
         };
         "due" = {
           id = "7bjjp-3xtez";
           path = "/mnt/data/history/due";
-          devices = [ "penguin" "moto-g32" "nixos-gaming""nixos-macmini" "zimaboard" ];
+          devices = [ "nixos-gaming" "macmini" "zimaboard" "penguin" "moto-g54-luca" ];
         };
         "CameraPapi" = {
           id = "moto_g8_power_zqnh-photos";
@@ -226,193 +287,38 @@
           devices = [ "zimaboard" ];
           type = "sendonly";
         };
+        "duplicatiRepoZIMABOARD" = {
+          id = "cnyrk-f3qw9";
+          path = "/mnt/data/backup/mamipapi/duplicati/remoterepo/zimaboard";
+          devices = [ "zimaboard" ];
+          type = "receiveonly";
+        };
       };    
     };    
   };
 
+  # Tailscale (VPN)
   services.tailscale.enable = true;
+  services.tailscale.package = pkgs.tailscale.overrideAttrs { doCheck = false; };
 
-  services.transmission = {
-    enable = true;
-    user = "luca";
-    openFirewall = true;
-    openRPCPort = true;
-    settings = {
-      rpc-bind-address = "0.0.0.0"; #Bind to own IP
-      rpc-whitelist = "127.0.0.1 192.168.*.*";  # Whitelist all machines in this network
-      rpc-host-whitelist = "hp800g3.fritz.box";
-      incomplete-dir-enabled = false;
-      incomplete-dir = "/mnt/data/media/download/.incomplete";
-      download-dir = "/mnt/data/media/download";
-      encryption = 2;
-      speed-limit-up-enabled = true;
-      speed-limit-up = 1250;
-      alt-speed-time-enabled = true;                 
-      alt-speed-time-begin = 480;                                        
-      alt-speed-time-end = 1320;
-      alt-speed-up = 125;
-      alt-speed-down = 125;
-    };
+  # Optimising the store
+  nix.settings.auto-optimise-store = true;
+
+  # Garbage collection
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 90d";
   };
 
-  #services.deluge = {
-    #enable = true;
-    #web.enable = true;
-    #openFirewall = true;
-    ##declarative = true;
-    #config = {
-      #download_location = "/mnt/data/media/deluge/download";
-    #};
-  #};
-  #users.groups.deluge.members = [ "luca" ];
-
-  services.samba = {
-    enable = true;
-    openFirewall = true;
-
-    # You will still need to set up the user accounts to begin with:
-    # $ sudo smbpasswd -a yourusername
-
-    settings = {
-      global = {
-        browseable = "yes";
-        "smb encrypt" = "required";
-      };
-
-      homes = {
-        browseable = "no";  # note: each home will be browseable; the "homes" share will not.
-        "read only" = "no";
-        "guest ok" = "no";
-      };
-      data = {
-        path = "/mnt/data";
-        browseable = "yes";
-        "read only" = "no";
-        "guest ok" = "no";
-        #"create mask" = "0644";
-        #"directory mask" = "0755";
-        #"force user" = "luca";
-        #"force group" = "luca";
-      };
-    };
-  };
-
-  # Browsing samba shares with GVFS
-  services.gvfs.enable = true;
-     
-  # Jellyfin with hardware acceleration
-  # 1. enable vaapi on OS-level
-  #nixpkgs.config.packageOverrides = pkgs: {
-    #vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
-  #};
-  #hardware.opengl = {
-    #enable = true;
-    #extraPackages = with pkgs; [
-      #intel-media-driver
-      #vaapiIntel
-      #vaapiVdpau
-      #libvdpau-va-gl
-      #intel-compute-runtime # OpenCL filter support (hardware tonemapping and subtitle burn-in)
-    #];
-  #};
-
-  # 2. do not forget to enable jellyfin
-  #services.jellyfin = {
-    #enable = true;
-    #user = "luca";
-  #};
-
-  # Navidrome
-  services.navidrome = {
-    enable = false;
-    settings = {
-      MusicFolder = "/mnt/data/media/Music/CD";
-      Address = "0.0.0.0";
-      ImageCacheSize = "1GB";
-      LastFM.ApiKey = "0987c2ad94f73d2bba753d7ce9123a65";
-      LastFM.Secret = "3debb1b9dd1f2a5a580266ab9859dfeb";
-    };
-  };
-
-  # Create folder for immich, where immich user can read/write
-  systemd.tmpfiles.rules = [
-    "d /mnt/data/immich 0771 luca immich -"
-    #"d /mnt/data/media/deluge 0771 deluge deluge -"
+  powerManagement.powertop.enable = true;
+  
+  services.cron.systemCronJobs = [
+      #"30 20 * * * root rtcwake -m disk --date +12h"  # auto standby
+      "@reboot root sleep 20 && systemctl restart navidrome.service"  # quick hack to wait for all disks
+      "@reboot root sleep 22 && systemctl restart syncthing.service"  # quick hack to wait for all disks
+      "@reboot root sleep 24 && systemctl restart transmission.service"  # quick hack to wait for all disks
   ];
-  services.immich = {
-    enable = false;
-    mediaLocation = "/mnt/data/immich";
-    host = "hp800g3.tail035a.ts.net";
-    settings.server.externalDomain = "https://hp800g3.tail035a.ts.net";
-  };  
-
-  services.mealie = {
-    enable = true;
-  };
-
-  services.home-assistant = {
-    enable = true;
-    extraComponents = [
-      # Components required to complete the onboarding
-      "esphome"
-      "met"
-      "radio_browser"
-    ];
-    config = {
-      # Includes dependencies for a basic setup
-      # https://www.home-assistant.io/integrations/default_config/
-      default_config = {};
-    };
-  };
-
-  # Snapraid
-  services.snapraid = {
-    enable = true;
-    dataDisks = {
-      d1 = "/mnt/disk1";
-      #d2 = "/mnt/disk2";
-    };
-    exclude = [
-      "/lost+found/"
-      "appdata/"
-    ];
-    parityFiles = [
-      "/mnt/diskp/snapraid.parity"
-    ];
-    contentFiles = [
-      "/var/snapraid.content"
-      "/mnt/disk1/snapraid.content"
-      #"/mnt/disk2/snapraid.content"
-    ];
-    sync.interval = "06:10";
-    scrub.interval = "Mon *-*-* 07:00:00";
-  };
-
-  # MergerFS to have multiple disk in a single path
-  fileSystems."/mnt/data" = {
-    #device = "/mnt/disk1:/mnt/disk2"; # multiple disks --> device = "/mnt/data1:/mnt/data2";
-    device = "/mnt/disk1"; # multiple disks --> device = "/mnt/data1:/mnt/data2";
-    fsType = "fuse.mergerfs";
-    options = [
-        "cache.files=partial"
-        "dropcacheonclose=true"
-        "category.create=mfs"
-      ];
-  };
-
-  #systemd.services.hd-idle = {
-  #description = "External HD spin down daemon";
-  #wantedBy = [ "multi-user.target" ];
-  #serviceConfig = {
-    #Type = "forking";
-    #ExecStart = "${pkgs.hd-idle}/bin/hd-idle";
-  #};
-  #};
-
-  # auto standby
-  #services.cron.systemCronJobs = [
-      #"30 20 * * * root rtcwake -m disk --date +12h"
-  #];
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
