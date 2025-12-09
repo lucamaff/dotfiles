@@ -1,0 +1,6 @@
+README.md
+{{- if ne .chezmoi.username "luca" }}
+.config/nixos/
+.config/pika-backup/
+.ssh
+{{- end }}
