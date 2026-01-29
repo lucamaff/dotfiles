@@ -8,40 +8,20 @@
   imports =
     [ # Include the results of the hardware scan.
       /etc/nixos/hardware-configuration.nix
-      /home/luca/docker/urbackup/docker-compose.nix
+      #/home/luca/docker/urbackup/docker-compose.nix
     ];
 
-  nixpkgs.config.permittedInsecurePackages = [
-    "broadcom-sta-6.30.223.271-57-6.12.41"
-  ];
-
   nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.permittedInsecurePackages = [
+    "broadcom-sta-6.30.223.271-59-6.12.59"
+  ];
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
   networking.hostName = "macmini"; # Define your hostname.
-  #networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
   networking.networkmanager.enable = true;
-
-  networking = {
-    interfaces.enp1s0f0 = {
-      ipv4.addresses = [{
-        address = "192.168.178.102";
-        prefixLength = 24;
-      }];
-    };
-    defaultGateway = {
-      address = "192.168.178.1";
-      interface = "enp1s0f0 ";
-    };
-    nameservers = [ "192.168.178.1" ];
-  };
-
-  # Configure network proxy if necessary
-  # networking.proxy.default = "http://user:password@proxy:port/";
-  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
   # Set your time zone.
   time.timeZone = "Europe/Rome";
@@ -67,25 +47,40 @@
     variant = "";
   };
 
-  # Original 2.5 disk from Mac Mini
+  # 2 TB Faxiang 2.5 SSD
+  #fileSystems."/mnt/fx2001b" = {
+    #device = "/dev/disk/by-uuid/b7343d31-d87d-4bf4-816b-128f6c6f15ee";
+    #fsType = "ext4";
+    #options = [
+      #"users" # Allows any user to mount and unmount
+      #"nofail" # Prevent system from failing if this drive doesn't mount
+    #];
+  #};
+
+  # 5 TB WD external USB disk
+  #fileSystems."/mnt/wd5001b" = {
+    #device = "/dev/disk/by-uuid/c3adb1ac-c332-4c71-bb2a-8cf0a182fbb4";
+    #fsType = "ext4";
+    #options = [
+      #"users" # Allows any user to mount and unmount
+      #"nofail" # Prevent system from failing if this drive doesn't mount
+    #];
+  #};
+
+  # 1 TB Apple 2.5 HDD
   fileSystems."/mnt/ap1001b" = {
-    device = "/dev/disk/by-uuid/28cd9aa3-77a0-4e59-b0b5-b013b2d08ae7";
-    fsType = "ext4";
+    device = "/dev/disk/by-uuid/c8705ce0-1163-403e-948f-86aa7996c135";
+    fsType = "btrfs";
     options = [
       "users" # Allows any user to mount and unmount
       "nofail" # Prevent system from failing if this drive doesn't mount
     ];
   };
 
-  # WD xxternal USB disk
-  fileSystems."/mnt/wd5001b" = {
-    device = "/dev/disk/by-uuid/c3adb1ac-c332-4c71-bb2a-8cf0a182fbb4";
-    fsType = "ext4";
-    options = [
-      "users" # Allows any user to mount and unmount
-      "nofail" # Prevent system from failing if this drive doesn't mount
-    ];
-  };
+  # Spin down disks (120 = 10 minutes) 
+   powerManagement.powerUpCommands = ''    
+     ${pkgs.hdparm}/sbin/hdparm -S 120 /dev/disk/by-uuid/c8705ce0-1163-403e-948f-86aa7996c135
+   '';
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.luca = {
@@ -94,8 +89,6 @@
     extraGroups = [ 
       "networkmanager"
       "wheel"
-      "podman"
-      "immich"
     ];
     packages = with pkgs; [];
     shell = pkgs.fish;
@@ -110,7 +103,6 @@
     borgbackup
     btop
     chezmoi
-    compose2nix
     gh
     git
     helix
@@ -119,6 +111,7 @@
     mediainfo
     ncdu
     nmap
+    pciutils
     powertop
     starship
     syncthing
@@ -169,26 +162,34 @@
         "read only" = "no";
         "guest ok" = "no";
       };
-      wd5001b = {
-        path = "/mnt/wd5001b";
-        browseable = "yes";
-        "read only" = "no";
-        "guest ok" = "no";
-      };
+      #fx2001b = {
+        #path = "/mnt/fx2001b";
+        #browseable = "yes";
+        #"read only" = "no";
+        #"guest ok" = "no";
+      #};
+      #wd5001b = {
+        #path = "/mnt/wd5001b";
+        #browseable = "yes";
+        #"read only" = "no";
+        #"guest ok" = "no";
+      #};
     };
   };
   # Browsing samba shares with GVFS
   services.gvfs.enable = true;
 
+  # Tailscale
   services.tailscale.enable = true;
+  services.tailscale.package = pkgs.tailscale.overrideAttrs { doCheck = false; };
 
+  # Syncthing
   services.syncthing = {
     enable = true;
     user = "luca";
     dataDir = "/home/luca";
     configDir = "/home/luca/.config/syncthing";
     openDefaultPorts = true;
-    #guiAddress = "192.168.178.102:8384";
     guiAddress = "0.0.0.0:8384";
     overrideDevices = true;     # overrides any devices added or deleted through the WebUI
     overrideFolders = true;     # overrides any folders added or deleted through the WebUI
@@ -196,7 +197,7 @@
       devices = {
         "penguin" = {id = "JAZH2ES-E7YNTS6-NJC5IPZ-CP74LRQ-CMQ2V5A-2LWGZFG-7O7PSYV-L56PKQN"; };
         "hp800g3" = { id = "GV2W7BL-S6HT5OP-EACXTAJ-347P2ZA-ADGDATV-LDFCV3H-4IMT6NL-5HSMYA2"; };
-        "moto-g32" = { id = "J43GXHC-7SG4NRM-3OZ5Y3W-QTYBJGS-O6SQX2I-T2U42CR-W4DGE4Q-VKI2XAH"; };
+        "moto-g54-luca" = { id = "34SJ4HM-6WEUPL2-HA7OVOD-OKTDUNE-RUGYPFV-VQBM3QR-FYJFYIB-OEP3DQ7"; };
         "nixos-gaming" = { id = "JXZZBVC-4CWRPBW-XOA52RJ-OHHANXK-XIHPRY5-SHTGQUH-UKFQM4M-EZGK3AT"; };
         "zimaboard" = { id = "NXOCWQY-TLCJGYA-UMQRFQM-ZD2LS5X-5RQY4TH-4DXZZC4-KKOWX32-IHPMRQL"; };
       };
@@ -219,7 +220,7 @@
         "MobileLuca" = {
           id = "moto_g32_v6vm-photos";
           path = "/mnt/ap1001b/history/MobileLuca";
-          devices = [ "hp800g3" "moto-g32" "nixos-gaming" "zimaboard" ];
+          devices = [ "hp800g3" "nixos-gaming" "zimaboard" "moto-g54-luca" ];
         };
         "Music" = {
           id = "an4zy-wuavw";
@@ -234,12 +235,12 @@
         "WhatsAppLuca" = {
           id = "tysor-1yp0m";
           path = "/mnt/ap1001b/history/WhatsAppLuca";
-          devices = [ "hp800g3" "moto-g32" "nixos-gaming" "zimaboard" ];
+          devices = [ "hp800g3" "nixos-gaming" "zimaboard" "moto-g54-luca" ];
         };
         "due" = {
           id = "7bjjp-3xtez";
           path = "/mnt/ap1001b/history/due";
-          devices = [ "penguin" "hp800g3" "moto-g32" "nixos-gaming" "zimaboard" ];
+          devices = [ "hp800g3" "nixos-gaming" "zimaboard" "penguin" "moto-g54-luca" ];
         };
         "borgRepoMACMINI" = {
           id = "cd9rd-vvyvx";
@@ -251,11 +252,32 @@
     };
   };
 
-  # Navidrome
+  # Immich (replace Google Photo)
+  services.immich = { 
+    enable = false; 
+    mediaLocation = "/mnt/fx2001b/immich";
+    host = "0.0.0.0"; 
+    settings.server.externalDomain = "https://macmini"; 
+    openFirewall = true; 
+    #settings = {
+      #image = {
+        #thumbnail.format = "webp";
+        #preview.format = "webp";
+      #};
+    #};
+  };
+
+  # Plex (film, TV)
+  services.plex = {                                                      
+    enable = false;                               
+    openFirewall = true;                                                                                      
+  };
+
+  # Navidrome (music)
   services.navidrome = {
     enable = false;
     settings = {
-      MusicFolder = "/mnt/ap1001b/media/Music/CD";
+      MusicFolder = "/mnt/fx2001b/media/Music/CD";
       Address = "0.0.0.0";
       ImageCacheSize = "1GB";
       LastFM.ApiKey = "0987c2ad94f73d2bba753d7ce9123a65";
@@ -263,24 +285,7 @@
     };
   };
 
-  # Plex
-  services.plex = {
-    enable = false;
-    openFirewall = true;
-  };
-
-  # Create folder for immich, where immich user can read/write
-  systemd.tmpfiles.rules = [
-    "d /mnt/ap1001b/immich 2771 luca luca"
-  ];
-  services.immich = {
-    enable = false;
-    mediaLocation = "/mnt/ap1001b/immich";
-    host = "macmini.tail035a.ts.net";
-    settings.server.externalDomain = "https://macmini.tail035a.ts.net";
-  };
-  #users.users.immich.extraGroups = [ "luca" ];
-
+  # Transmission (torrent)
   services.transmission = {
     enable = false;
     user = "luca";
@@ -290,7 +295,9 @@
       rpc-bind-address = "0.0.0.0"; #Bind to own IP
       rpc-whitelist = "127.0.0.1 192.168.*.*";  # Whitelist all machines in this network
       rpc-host-whitelist = "macmini.fritz.box";
-      download-dir = "/mnt/ap1001b/media/download";
+      incomplete-dir-enabled = true;
+      incomplete-dir = "/mnt/fx2001b/media/torrent/incomplete";
+      download-dir = "/mnt/fx2001b/media/torrent/download";
       encryption = 2;
       alt-speed-time-enabled = true;
       alt-speed-up = 500;
@@ -300,22 +307,65 @@
     };
   };
 
-  # auto standby
-  #services.cron.systemCronJobs = [
-      #"30 22 * * * root rtcwake -m mem --date +10h"
-  #];
+  # Meal planner                                                                                
+  services.mealie = {                                                                                  
+    enable = false;                                                                                   
+  };
+
+  # Home Assistant
+  services.home-assistant = {         
+    enable = false;                       
+    extraComponents = [                                                                          
+      # Components required to complete the onboarding
+      "analytics"
+      "google_translate"
+      "met"
+      "radio_browser"
+      "shopping_list"
+      # Recommended for fast zlib compression
+      # https://www.home-assistant.io/integrations/isal
+      "isal"
+      "netatmo"  # Termostato
+      "tuya"  # Smart plugs
+      "xiaomi_miio"  # Xiaomi Mi Robot Vacuum
+    ];                                           
+    config = {                                                                                                
+      # Includes dependencies for a basic setup 
+      # https://www.home-assistant.io/integrations/default_config/ 
+      default_config = {};
+      homeassistant = {
+        name = "Casa Azzio";
+        latitude = 45.88624994171359;
+        longitude = 8.710174693276345;
+        elevation = 400;
+        country = "IT";
+        time_zone= "Europe/Rome";
+        unit_system = "metric";
+      };
+      #vacuum = {
+        #platform = "xiaomi_miio";
+        #host = "192.168.178.31";
+        #token = "4630727a7254524b57586934675a7a38";
+      #};
+    };                                                                
+  }; 
 
   powerManagement.powertop.enable = true;
   
   # Optimising the store
   nix.settings.auto-optimise-store = true;
-
   nix.gc = {
     automatic = true;
     dates = "weekly";
     options = "--delete-older-than 30d";
   };
   
+  services.cron.systemCronJobs = [
+    #"30 23 * * * root rtcwake -m mem --date +9h"  # auto standby
+    #"@reboot root setpci -s 00:1f.0 0xa4.b=0"  # auto restart after power loss
+    "00 20 * * * root /run/current-system/sw/bin/shutdown -h now"  # power off at night
+  ];
+
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
   # on your system were taken. It‘s perfectly fine and recommended to leave
