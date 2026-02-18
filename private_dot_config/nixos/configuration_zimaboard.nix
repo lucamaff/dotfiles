@@ -14,7 +14,7 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  # WD 4TB disk
+  # 4TB Western Digital data disk
   fileSystems."/mnt/wd4001b" = {
     device = "/dev/disk/by-uuid/e6f1f7e5-f82d-4ade-99b2-edd79eaabaf6";
     fsType = "btrfs";
@@ -24,6 +24,23 @@
       "exec" # Needed by Steam library
     ];
   };
+
+  # Wester Digital 2TB data disk
+  #fileSystems."/mnt/wd2001b" = {
+    #device = "/dev/disk/by-uuid/aac7a363-3532-4964-a8a7-602c6623092e";
+    #fsType = "btrfs";
+    #options = [
+      #"users" # Allows any user to mount and unmount
+      #"nofail" # Prevent system from failing if this drive doesn't mount
+      #"exec" # Needed by Steam library
+    #];
+  #};
+
+  # Spin down disks (120 = 10 minutes) #TODO: change with new disk
+  powerManagement.powerUpCommands = '' 
+    ${pkgs.hdparm}/sbin/hdparm -S 120 /dev/disk/by-uuid/aac7a363-3532-4964-a8a7-602c6623092e
+    ${pkgs.hdparm}/sbin/hdparm -S 120 /dev/disk/by-uuid/e6f1f7e5-f82d-4ade-99b2-edd79eaabaf6
+  '';
 
   networking.hostName = "zimaboard"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
@@ -80,6 +97,7 @@
     chezmoi
     gh
     git
+    hdparm
     helix
     htop
     iperf3
@@ -109,6 +127,7 @@
 
   # Enable tailscale
   services.tailscale.enable = true;
+  services.tailscale.package = pkgs.tailscale.overrideAttrs { doCheck = false; };
 
   services.samba = {
     enable = true;
@@ -132,6 +151,12 @@
         "read only" = "no";
         "guest ok" = "no";
       };
+      #wd2001b = {
+        #path = "/mnt/wd2001b";
+        #browseable = "yes";
+        #"read only" = "no";
+        #"guest ok" = "no";
+      #};
     };
   };
 
@@ -147,13 +172,12 @@
     overrideFolders = true;     # overrides any folders added or deleted through the WebUI
     settings = {
       devices = {
-        "penguin" = {id = "JAZH2ES-E7YNTS6-NJC5IPZ-CP74LRQ-CMQ2V5A-2LWGZFG-7O7PSYV-L56PKQN"; autoAcceptFolders = true; };
-        "hp800g3" = { id = "GV2W7BL-S6HT5OP-EACXTAJ-347P2ZA-ADGDATV-LDFCV3H-4IMT6NL-5HSMYA2"; autoAcceptFolders = true; };
-        "moto-g32" = { id = "J43GXHC-7SG4NRM-3OZ5Y3W-QTYBJGS-O6SQX2I-T2U42CR-W4DGE4Q-VKI2XAH"; autoAcceptFolders = true; };
-        "nixos-gaming" = { id = "JXZZBVC-4CWRPBW-XOA52RJ-OHHANXK-XIHPRY5-SHTGQUH-UKFQM4M-EZGK3AT"; autoAcceptFolders = true; };
-        "macmini" = { id = "NCANLZ5-ZM3WPT5-PE6X36O-YQLOPCR-AUHSJZX-3B74G72-V5F6KLM-XGJ2KQ5"; autoAcceptFolders = true; };
-        "qnap-ts212" = { id = "6IHVZJZ-6KHTCME-2YYBMQ7-MN4JB4K-OBURXKK-HFI3I24-QWAEFKT-QSO4ZAR"; autoAcceptFolders = true; };
-        "PCMamiPapi" = { id = "E6ZAXTG-JD5UBHV-OS2AJ2R-2SUQ6DE-M6BQP4R-U7O6Z4L-U6DYZF7-2USXJAC"; autoAcceptFolders = true; };
+        "penguin" = {id = "JAZH2ES-E7YNTS6-NJC5IPZ-CP74LRQ-CMQ2V5A-2LWGZFG-7O7PSYV-L56PKQN"; };
+        "hp800g3" = { id = "GV2W7BL-S6HT5OP-EACXTAJ-347P2ZA-ADGDATV-LDFCV3H-4IMT6NL-5HSMYA2"; };
+        "moto-g54-luca" = { id = "34SJ4HM-6WEUPL2-HA7OVOD-OKTDUNE-RUGYPFV-VQBM3QR-FYJFYIB-OEP3DQ7"; };
+        "nixos-gaming" = { id = "JXZZBVC-4CWRPBW-XOA52RJ-OHHANXK-XIHPRY5-SHTGQUH-UKFQM4M-EZGK3AT"; };
+        "macmini" = { id = "NCANLZ5-ZM3WPT5-PE6X36O-YQLOPCR-AUHSJZX-3B74G72-V5F6KLM-XGJ2KQ5"; };
+        "PCMamiPapi" = { id = "E6ZAXTG-JD5UBHV-OS2AJ2R-2SUQ6DE-M6BQP4R-U7O6Z4L-U6DYZF7-2USXJAC"; };
       };
       folders = {
         "BigLens" = {
@@ -174,7 +198,7 @@
         "MobileLuca" = {
           id = "moto_g32_v6vm-photos";
           path = "/mnt/wd4001b/history/MobileLuca";
-          devices = [ "hp800g3" "moto-g32" "nixos-gaming" "macmini" ];
+          devices = [ "hp800g3" "nixos-gaming" "macmini" "moto-g54-luca" ];
         };
         "Music" = {
           id = "an4zy-wuavw";
@@ -189,12 +213,12 @@
         "WhatsAppLuca" = {
           id = "tysor-1yp0m";
           path = "/mnt/wd4001b/history/WhatsAppLuca";
-          devices = [ "hp800g3" "moto-g32" "nixos-gaming" "macmini" ];
+          devices = [ "hp800g3" "nixos-gaming" "macmini" "moto-g54-luca" ];
         };
         "due" = {
           id = "7bjjp-3xtez";
           path = "/mnt/wd4001b/history/due";
-          devices = [ "penguin" "hp800g3" "moto-g32" "nixos-gaming" "macmini" ];
+          devices = [ "hp800g3" "nixos-gaming" "macmini" "penguin" "moto-g54-luca" ];
         };
         "CameraPapi" = {
           id = "moto_g8_power_zqnh-photos";
@@ -206,17 +230,11 @@
           path = "/mnt/wd4001b/history/WhatsAppPapi";
           devices = [ "hp800g3" "PCMamiPapi" ];
         };
-        "borgRepoHP800G3" = {
-          id = "erpf3-5ey2u";
-          path = "/mnt/wd4001b/backup/luca/borg/remoterepo/hp800g3";
+        "duplicatiRepoZIMABOARD" = {
+          id = "cnyrk-f3qw9";
+          path = "/mnt/wd4001b/backup/mamipapi";
           devices = [ "hp800g3" ];
-          type = "receiveonly";
-        };
-        "borgRepoMACMINI" = {
-          id = "cd9rd-vvyvx";
-          path = "/mnt/wd4001b/backup/luca/borg/remoterepo/macmini";
-          devices = [ "macmini" ];
-          type = "receiveonly";
+          type = "sendonly";
         };
       };
     };
@@ -226,10 +244,8 @@
       # suspend during the night
       #"30 22 * * * root rtcwake -m mem --date +10h"
       # copy remote repo only overnight
-      "30 06 * * * luca syncthing cli config folders cd9rd-vvyvx paused set true"
-      "30 06 * * * luca syncthing cli config folders erpf3-5ey2u paused set true"
-      "30 23 * * * luca syncthing cli config folders cd9rd-vvyvx paused set false"
-      "30 23 * * * luca syncthing cli config folders erpf3-5ey2u paused set false"
+      "33 06 * * * luca syncthing cli config folders cnyrk-f3qw9 paused set true"  # duplicatiRepoZIMABOARD
+      "33 23 * * * luca syncthing cli config folders cnyrk-f3qw9 paused set false"
   ];
 
   powerManagement.powertop.enable = true;
