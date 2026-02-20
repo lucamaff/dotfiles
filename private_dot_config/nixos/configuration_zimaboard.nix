@@ -21,26 +21,51 @@
     options = [
       "users" # Allows any user to mount and unmount
       "nofail" # Prevent system from failing if this drive doesn't mount
-      "exec" # Needed by Steam library
     ];
   };
 
-  # Wester Digital 2TB data disk
-  #fileSystems."/mnt/wd2001b" = {
-    #device = "/dev/disk/by-uuid/aac7a363-3532-4964-a8a7-602c6623092e";
-    #fsType = "btrfs";
-    #options = [
-      #"users" # Allows any user to mount and unmount
-      #"nofail" # Prevent system from failing if this drive doesn't mount
-      #"exec" # Needed by Steam library
-    #];
-  #};
+  # Seagate Barracuda 4TB data disk
+  fileSystems."/mnt/sg4001b" = {
+    device = "/dev/disk/by-uuid/f49960b7-f5b2-4844-b8ea-244bfbe97aca";
+    fsType = "xfs";
+    options = [
+      "users" # Allows any user to mount and unmount
+      "nofail" # Prevent system from failing if this drive doesn't mount
+    ];
+  };
 
   # Spin down disks (120 = 10 minutes) #TODO: change with new disk
   powerManagement.powerUpCommands = '' 
-    ${pkgs.hdparm}/sbin/hdparm -S 120 /dev/disk/by-uuid/aac7a363-3532-4964-a8a7-602c6623092e
+    ${pkgs.hdparm}/sbin/hdparm -S 120 /dev/disk/by-uuid/f49960b7-f5b2-4844-b8ea-244bfbe97aca
     ${pkgs.hdparm}/sbin/hdparm -S 120 /dev/disk/by-uuid/e6f1f7e5-f82d-4ade-99b2-edd79eaabaf6
   '';
+
+  # Snapraid
+  services.snapraid = {
+    enable = true;
+    dataDisks = {
+      d1 = "/mnt/wd4001b";
+    };
+    exclude = [
+      "/lost+found/"
+      "appdata/"
+    ];
+    parityFiles = [
+      "/mnt/sg4001b/snapraid.parity"
+    ];
+    contentFiles = [
+      "/var/snapraid.content"
+      "/mnt/wd4001b/snapraid.content"
+    ];
+    # Default: scrub weekly 8% of the array older than 10 days.
+    # This means that scrubbing once a week, every bit of data is checked at least one time every three months.
+    sync.interval = "01:00";
+    scrub = {
+      interval = "Mon *-*-* 02:00:00";
+      plan = 8;
+      olderThan = 10;
+    };
+  };
 
   networking.hostName = "zimaboard"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
