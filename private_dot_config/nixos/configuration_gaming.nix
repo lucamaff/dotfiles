@@ -13,7 +13,7 @@
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.timeout = 3;
+  boot.loader.timeout = 7;
   # Use this if /boot becomes full
   boot.loader.systemd-boot.configurationLimit = 16;
   # Setting RTC time standard to localtime, compatible with Windows in its default configuration
@@ -29,6 +29,9 @@
   # Enable networking
   networking.networkmanager.enable = true;
 
+  # Enable Wake on Lan
+  networking.interfaces.enp11s0.wakeOnLan.enable = true;
+  
   # networking.interfaces.enp11s0.useDHCP = false;
   # networking.interfaces.enp11s0 = {
   #   ipv4.addresses = [{
@@ -59,8 +62,8 @@
   services.xserver.enable = true;
 
   # Enable the GNOME Desktop Environment.
-  services.xserver.displayManager.gdm.enable = true;
-  services.xserver.desktopManager.gnome.enable = true;
+  services.displayManager.gdm.enable = true;
+  services.desktopManager.gnome.enable = true;
 
   services.gnome.gnome-keyring.enable = true;
   security.pam.services.login.enableGnomeKeyring = true;
@@ -149,16 +152,14 @@
     ];
   };
 
-  # Fanxiang 2TB SSD
+  # Faxiang 2TB SSD
   fileSystems."/mnt/fx2001b" = {
-    device = "/dev/disk/by-uuid/33C2-B1C4";
-    fsType = "exfat";
+    device = "/dev/disk/by-uuid/56f445ec-2e4c-4360-875a-067d2d9083a0";
+    fsType = "btrfs";
     options = [
       "users" # Allows any user to mount and unmount
       "nofail" # Prevent system from failing if this drive doesn't mount
       "exec" # Needed by Steam library
-      "uid=1000"
-      "gid=100"
     ];
   };
 
@@ -166,7 +167,7 @@
   users.users.luca = {
     isNormalUser = true;
     description = "Luca Maff";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [ "networkmanager" "wheel" "docker"];
     packages = with pkgs; [
     #  thunderbird
     ];
@@ -183,6 +184,11 @@
   systemd.services."getty@tty1".enable = true;
   systemd.services."autovt@tty1".enable = true;
 
+
+  # Enable the OpenSSH daemon.   
+  services.openssh.enable = true;
+
+
   # Install firefox.
   programs.firefox.enable = true;
 
@@ -194,7 +200,6 @@
   environment.systemPackages = with pkgs; [
     ansible
     avidemux
-    awscli
     bitwarden-cli
     bitwarden-desktop
     bottles
@@ -211,11 +216,14 @@
     encfs
     exfatprogs
     ffmpeg-full
+    flameshot
+    freecad
     freefilesync
     freetube
     gh
     gimp-with-plugins
     git
+    gnome-multi-writer
     gparted
     handbrake
     hdparm
@@ -224,7 +232,6 @@
     hfsprogs    
     htop
     iperf3
-    jetbrains.pycharm-community
     keepassxc
     kopia
     libreoffice
@@ -233,7 +240,7 @@
     megasync
     ncdu
     nixd
-    onlyoffice-bin_latest
+    onlyoffice-desktopeditors
     gnomeExtensions.appindicator
     gnomeExtensions.forge
     gnomeExtensions.mock-tray
@@ -245,14 +252,16 @@
     pdf4qt
     picard
     pika-backup
-    protonup
+    protonup-ng
     protonup-qt
     qbittorrent
+    qemu
     qgis
     quickemu
     starship
     subversionClient
     syncthing
+    sweethome3d.application
     telegram-desktop
     teams-for-linux
     ticktick
@@ -265,20 +274,25 @@
     vscodium
     wavemon
     wget
-    whatsie
+    #whatsie
+    #winboat
   ];
 
   services.udev.packages = with pkgs; [ gnome-settings-daemon ];
 
   # Steam
-  programs.steam.enable = false;
-  programs.steam.gamescopeSession.enable = false;
-  programs.gamemode.enable = false;
+  programs.steam.enable = true;
+  programs.steam.gamescopeSession.enable = true;
+  programs.gamemode.enable = true;
 
-  nixpkgs.config.permittedInsecurePackages = [
-    "electron-27.3.11"
-    "electron-33.4.11"
-  ];
+  # nixpkgs.config.permittedInsecurePackages = [
+  #   "electron-36.9.5"
+  #   "qtwebengine-5.15.19"
+  # ];
+
+  environment.variables = {
+    JAVA_TOOL_OPTIONS = "-Dcom.eteks.sweethome3d.j3d.useOffScreen3DView=true";
+  };
 
   # open-source implementation of Nvidia’s Moonlight game streaming 
   services.sunshine = {
@@ -290,6 +304,7 @@
 
   # Tailscale VPN
   services.tailscale.enable = true;
+  services.tailscale.package = pkgs.tailscale.overrideAttrs { doCheck = false; };
 
   # Teamviewer
   services.teamviewer.enable = false;
@@ -308,54 +323,69 @@
       devices = {
         "penguin" = {id = "JAZH2ES-E7YNTS6-NJC5IPZ-CP74LRQ-CMQ2V5A-2LWGZFG-7O7PSYV-L56PKQN"; };
         "hp800g3" = { id = "GV2W7BL-S6HT5OP-EACXTAJ-347P2ZA-ADGDATV-LDFCV3H-4IMT6NL-5HSMYA2"; };
-        "moto-g32" = { id = "J43GXHC-7SG4NRM-3OZ5Y3W-QTYBJGS-O6SQX2I-T2U42CR-W4DGE4Q-VKI2XAH"; };
         "moto-g54-luca" = { id = "34SJ4HM-6WEUPL2-HA7OVOD-OKTDUNE-RUGYPFV-VQBM3QR-FYJFYIB-OEP3DQ7"; };
-        "nixos-macmini" = { id = "NCANLZ5-ZM3WPT5-PE6X36O-YQLOPCR-AUHSJZX-3B74G72-V5F6KLM-XGJ2KQ5"; };
+        "macmini" = { id = "NCANLZ5-ZM3WPT5-PE6X36O-YQLOPCR-AUHSJZX-3B74G72-V5F6KLM-XGJ2KQ5"; };
         "zimaboard" = { id = "NXOCWQY-TLCJGYA-UMQRFQM-ZD2LS5X-5RQY4TH-4DXZZC4-KKOWX32-IHPMRQL"; };
       };
       folders = {
         "BigLens" = {
           id = "62prt-kdyws";
           path = "/mnt/data/history/BigLens";
-          devices = [ "hp800g3" "nixos-macmini" "zimaboard" ];
+          devices = [ "hp800g3" "macmini" "zimaboard" ];
         };
         "EncFS" = {
           id = "j6e46-4z2f7";
           path = "/mnt/data/media/EncFS";
-          devices = [ "hp800g3" "nixos-macmini" "zimaboard" ];
+          devices = [ "hp800g3" "macmini" "zimaboard" ];
         };
         "MobileLuca" = {
           id = "moto_g32_v6vm-photos";
           path = "/mnt/data/history/MobileLuca";
-          devices = [ "hp800g3" "nixos-macmini" "zimaboard" "moto-g54-luca" ];
-        };
-        "MobileLaura" = {
-          id = "moto_g_pro_8rrx-photos";
-          path = "/mnt/data/history/MobileLaura";
-          devices = [ "hp800g3" "nixos-macmini" "zimaboard" ];
+          devices = [ "hp800g3" "macmini" "zimaboard" "moto-g54-luca" ];
         };
         "Music" = {
           id = "an4zy-wuavw";
           path = "/mnt/data/media/Music";
-          devices = [ "hp800g3" "nixos-macmini" "zimaboard" ];
+          devices = [ "hp800g3" "macmini" "zimaboard" ];
         };
         "WhatsAppLuca" = {
           id = "tysor-1yp0m";
           path = "/mnt/data/history/WhatsAppLuca";
-          devices = [ "hp800g3" "nixos-macmini" "zimaboard" "moto-g54-luca" ];
+          devices = [ "hp800g3" "macmini" "zimaboard" "moto-g54-luca" ];
         };
         "due" = {
           id = "7bjjp-3xtez";
           path = "/home/luca/MEGA/due";
-          devices = [ "hp800g3" "nixos-macmini" "zimaboard" "penguin" "moto-g54-luca" ];
+          devices = [ "hp800g3" "macmini" "zimaboard" "penguin" "moto-g54-luca" ];
         };
       };
     };
   };
 
   # Docker (JRC work)
-  virtualisation.docker.enable = true;
-  users.extraGroups.docker.members = [ "luca" ];
+  # virtualisation.docker.enable = true;
+  # users.extraGroups.docker.members = [ "luca" ];
+
+  virtualisation.podman = {
+    enable = true;
+    dockerCompat = true;
+  };
+  environment.sessionVariables = {
+    PATH = [ "$HOME/.local/bin" ];
+  };
+
+  # Ollama
+  services.ollama = {
+    enable = true;
+    package = pkgs.ollama-cuda;
+  };
+  services.open-webui.enable = true;
+
+  # KeyPRO
+  services.udev.extraRules = ''
+    KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="fe00", MODE="0660", TAG+="uaccess"
+  '';
+  
 
   # Optimising the store
   nix.settings.auto-optimise-store = true;
