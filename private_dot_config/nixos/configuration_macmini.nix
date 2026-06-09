@@ -13,7 +13,8 @@
 
   nixpkgs.config.allowUnfree = true;
   nixpkgs.config.permittedInsecurePackages = [
-    "broadcom-sta-6.30.223.271-59-6.12.59"
+    "electron-39.8.10"
+    "broadcom-sta-6.30.223.271-59-6.18.34"
   ];
 
   # Bootloader.
@@ -46,6 +47,24 @@
     layout = "us";
     variant = "";
   };
+
+  # Enable the X11 windowing system
+  services.xserver.enable = true;
+
+  # Enable the GNOME Desktop Environment
+  services.displayManager.gdm.enable = true;
+  services.desktopManager.gnome.enable = true;
+
+  services.gnome.gnome-keyring.enable = true;
+  security.pam.services.login.enableGnomeKeyring = true;
+
+  # Enable automatic login for the user
+  services.displayManager.autoLogin.enable = true;
+  services.displayManager.autoLogin.user = "luca";
+  systemd.services."getty@tty1".enable = true;
+  systemd.services."autovt@tty1".enable = true;
+
+
 
   # 2 TB Faxiang 2.5 SSD
   #fileSystems."/mnt/fx2001b" = {
@@ -98,27 +117,45 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-  #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     bitwarden-cli
+    bitwarden-desktop
     borgbackup
+    brave
     btop
     chezmoi
+    encfs
     gh
     git
+    gnomeExtensions.appindicator
+    gnomeExtensions.forge
+    gnomeExtensions.mock-tray
+    gnomeExtensions.pano
+    gnomeExtensions.system-monitor
     helix
     htop
     iperf3
+    keepassxc
+    libreoffice
+    logseq
+    megasync
     mediainfo
     ncdu
     nmap
     pciutils
+    pika-backup
     powertop
     starship
     syncthing
+    telegram-desktop
+    teams-for-linux
+    ticktick
     tmux
+    vscodium
   ];
 
   programs.fish.enable = true;
+
+  programs.firefox.enable = true;
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
@@ -162,18 +199,6 @@
         "read only" = "no";
         "guest ok" = "no";
       };
-      #fx2001b = {
-        #path = "/mnt/fx2001b";
-        #browseable = "yes";
-        #"read only" = "no";
-        #"guest ok" = "no";
-      #};
-      #wd5001b = {
-        #path = "/mnt/wd5001b";
-        #browseable = "yes";
-        #"read only" = "no";
-        #"guest ok" = "no";
-      #};
     };
   };
   # Browsing samba shares with GVFS
@@ -241,12 +266,6 @@
           id = "7bjjp-3xtez";
           path = "/mnt/ap1001b/history/due";
           devices = [ "hp800g3" "nixos-gaming" "zimaboard" "penguin" "moto-g54-luca" ];
-        };
-        "borgRepoMACMINI" = {
-          id = "cd9rd-vvyvx";
-          path = "/mnt/ap1001b/backup";
-          devices = [ "zimaboard" ];
-          type = "sendonly";
         };
       };
     };
@@ -363,7 +382,8 @@
   services.cron.systemCronJobs = [
     #"30 23 * * * root rtcwake -m mem --date +9h"  # auto standby
     #"@reboot root setpci -s 00:1f.0 0xa4.b=0"  # auto restart after power loss
-    "00 20 * * * root /run/current-system/sw/bin/shutdown -h now"  # power off at night
+    "@reboot root setpci -s 00:1f.0 0xa4.b=1"  # DO NOT auto restart after power loss
+    # "00 20 * * * root /run/current-system/sw/bin/shutdown -h now"  # power off at night
   ];
 
   # This value determines the NixOS release from which the default
