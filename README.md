@@ -46,3 +46,31 @@ gh auth login
 ```fish
 chezmoi init --apply lucamaff
 ```
+
+## Work servers
+
+1. Install conda
+
+2. Create a minimal environment with chezmoi and few basic packages
+
+```bash
+conda create -n chezmoi gh git chezmoi rbw  # rbw is unofficial bitwarden-cli
+```
+
+3. Login to bitwarden and github
+
+```bash
+rbw login
+```
+
+```bash
+gh auth login
+```
+
+4. Run
+
+```bash
+chezmoi init --apply lucamaff
+```
+
+
