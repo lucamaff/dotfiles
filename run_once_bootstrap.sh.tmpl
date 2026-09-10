@@ -83,3 +83,81 @@ echo "Now using: /home/{{ .chezmoi.username }}/.config/nixos/configuration_zimab
 sudo nixos-rebuild switch
 
 {{ end }}
+
+
+# Surface Laptop 3
+{{ if eq .chezmoi.hostname "SL3"}}
+
+# Install Helpers from Repo
+
+echo "Installing yay and paru from CachyOS repository..."
+# In CachyOS we can just use pacman
+sudo pacman -S --needed --noconfirm yay paru
+echo "yay and paru installed."
+
+# --- Package List ---
+
+PACKAGES=(
+    # Essential
+    "bitwarden"
+    "bitwarden-cli"
+    "chezmoi"
+    "git"
+    "github-cli"
+
+
+    # Terminal
+    "bat"
+    "btop"
+    "encfs"
+    "eza"
+    "htop"
+    "ncdu"
+    "powertop"
+    "starship"
+    "tmux"
+    "zozide"
+
+    # Apps
+    "brave-bin"
+    "firefox"
+    "vscodium"
+
+    # Gaming
+    "steam"
+
+    # Comms
+    "telegram-desktop"
+
+    # Archive tools
+    "zip" "unzip" "p7zip" "tar" "file-roller" "peazip"
+
+    # Editors
+    "helix"
+    "vim"
+
+    # Others
+    "gimp"
+    "kiro-ide"
+    "libreoffice-fresh"
+    "libreoffice-fresh-en-gb"
+    "libreoffice-fresh-fr"
+    "libreoffice-fresh-it"
+    "logseq-desktop-bin"
+    "ticktick"
+)
+
+echo "Installing user packages list..."
+
+# Set Package Manager (We know yay is installed now)
+PACKAGE_MANAGER="yay"
+
+# Flatten array to string
+PKG_LIST="${PACKAGES[*]}"
+
+# Install
+$PACKAGE_MANAGER -S --needed --noconfirm $PKG_LIST
+
+echo "All packages installed successfully!"
+
+{{ end }}

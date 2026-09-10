@@ -47,6 +47,38 @@ gh auth login
 chezmoi init --apply lucamaff
 ```
 
+## CachyOS
+
+1. Install CachyOS
+
+2. Install minimum packages:
+
+```fish
+bitwarden
+bitwarden-cli
+chezmoi
+git
+github-cli
+```
+
+3. Login to bitwarden and github
+
+```fish
+bw login
+```
+
+```fish
+gh auth login
+```
+
+4. Run
+
+```fish
+chezmoi init --apply lucamaff
+```
+
+
+
 ## Work servers
 
 1. Install conda
