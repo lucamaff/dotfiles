@@ -3,7 +3,14 @@
     name = Luca Maff
 [pull]
     rebase = true
-{{ if ne .chezmoi.hostname "SL3"}}
+{{ if eq .chezmoi.hostname "SL3"}}
+[credential "https://github.com"]
+    helper = 
+	helper = !/usr/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+    helper = 
+    helper = !/usr/bin/gh auth git-credential
+{{ else }}
 [credential "https://github.com"]
 	helper = 
 	helper = !/run/current-system/sw/bin/gh auth git-credential
