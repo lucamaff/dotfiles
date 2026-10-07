@@ -7,7 +7,7 @@
 {
   imports =
     [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
+      /etc/nixos/hardware-configuration.nix
     ];
 
   # Use the systemd-boot EFI boot loader.
@@ -38,8 +38,8 @@
 
   # 4TB Seagate Barracuda data disk
   fileSystems."/mnt/sg4001b" = {
-    device = "/dev/disk/by-uuid/f49960b7-f5b2-4844-b8ea-244bfbe97aca";
-    fsType = "xfs";
+    device = "/dev/disk/by-uuid/3cd68110-b231-46f3-9f3f-020bed248c73";
+    fsType = "btrfs";
     options = [
       "users" # Allows any user to mount and unmount
       "nofail" # Prevent system from failing if this drive doesn't mount
@@ -48,8 +48,8 @@
 
   # 5 TB WD external USB disk
   fileSystems."/mnt/wd5001b" = {
-    device = "/dev/disk/by-uuid/c3adb1ac-c332-4c71-bb2a-8cf0a182fbb4";
-    fsType = "ext4";
+    device = "/dev/disk/by-uuid/a3a6e8ee-cac4-46f3-b299-a4ead9b86c63";
+    fsType = "xfs";
     options = [
       "users" # Allows any user to mount and unmount
       "nofail" # Prevent system from failing if this drive doesn't mount
@@ -63,14 +63,56 @@
       pkgs.hdparm
     ];
     # the action taken when the service runs
-    script = "hdparm -S 120 /dev/disk/by-uuid/e6f1f7e5-f82d-4ade-99b2-edd79eaabaf6; hdparm -S 120 /dev/disk/by-uuid/f49960b7-f5b2-4844-b8ea-244bfbe97aca; hdparm -S 120 /dev/disk/by-uuid/c3adb1ac-c332-4c71-bb2a-8cf0a182fbb4";
+    script = "hdparm -S 120 /dev/disk/by-uuid/e6f1f7e5-f82d-4ade-99b2-edd79eaabaf6; hdparm -S 120 /dev/disk/by-uuid/3cd68110-b231-46f3-9f3f-020bed248c73; hdparm -S 120 /dev/disk/by-uuid/a3a6e8ee-cac4-46f3-b299-a4ead9b86c63";
     serviceConfig = {
       Type = "oneshot";
       User = "root";
     };
     wantedBy = [ "multi-user.target" ];
   };
-  
+
+  # MergerFS to have multiple disk in a single path
+  fileSystems."/mnt/hdd" = {
+    device = "/mnt/sg4001b:/mnt/wd4001b"; # multiple disks --> device = "/mnt/data1:/mnt/data2";
+    fsType = "fuse.mergerfs";
+    options = [
+      "cache.files=off"        # Disable file caching (recommended for large files)
+      "dropcacheonclose=true"  # Drop caches when files are closed
+      "moveonenospc=true"      # Move files when source drive is full
+      "ignorepponrename=true"  # Don't relocate stuff to another disk if I rename things
+      "minfreespace=100G"      # Reserve 100GB free space per drive
+      "category.create=mfs"    # path preserving algorithm
+    ];
+  };
+
+  # Snapraid
+  services.snapraid = {
+    enable = true;
+    dataDisks = {
+      d1 = "/mnt/wd4001b";
+      d2 = "/mnt/sg4001b";
+    };
+    exclude = [
+      "/lost+found/"
+      "appdata/"
+    ];
+    parityFiles = [
+      "/mnt/wd5001b/snapraid.parity"
+    ];
+    contentFiles = [
+      "/var/snapraid.content"
+      "/mnt/wd4001b/snapraid.content"
+      "/mnt/sg4001b/snapraid.content"
+    ];
+    # Default: scrub weekly 8% of the array older than 10 days.
+    # This means that scrubbing once a week, every bit of data is checked at least one time every three months. 
+    sync.interval = "01:00";
+    scrub = {
+      interval = "Mon *-*-* 02:00:00";
+      plan = 8;
+      olderThan = 10;
+    };
+  };
 
   # Set your time zone.
   time.timeZone = "Europe/Rome";
@@ -105,6 +147,9 @@
     shell = pkgs.fish;
   };
 
+  # Use fish
+  programs.fish.enable = true;
+
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
@@ -124,9 +169,11 @@
     mergerfs
     mergerfs-tools
     ncdu
+    tparted
     smartmontools
     starship
     tmux
+    zoxide
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -143,11 +190,151 @@
   services.openssh.enable = true;
   services.openssh.allowSFTP = true;
 
-  # Use fish
-  programs.fish.enable = true;
-
   # Tailscale (VPN)
   services.tailscale.enable = true;
+
+  # Share folder on the network
+  services.samba = {
+    enable = true;
+    openFirewall = true;
+
+    # You will still need to set up the user accounts to begin with:
+    # $ sudo smbpasswd -a yourusername
+
+    settings = {
+      global = {
+        browseable = "yes";
+        "smb encrypt" = "required";
+      };
+
+      homes = {
+        browseable = "no";  # note: each home will be browseable; the "homes" share will not.
+        "read only" = "no";
+        "guest ok" = "no";
+      };
+      hdd = {
+        path = "/mnt/hdd";
+        browseable = "yes";
+        "read only" = "no";
+        "guest ok" = "no";
+      };
+    };
+  };
+  # Browsing samba shares with GVFS
+  services.gvfs.enable = true;
+
+  services.syncthing = {
+    enable = true;
+    user = "luca";
+    dataDir = "/mnt/hdd";
+    configDir = "/home/luca/.config/syncthing";
+    openDefaultPorts = true;
+    guiAddress = "0.0.0.0:8384";
+    overrideDevices = true;     # overrides any devices added or deleted through the WebUI
+    overrideFolders = true;     # overrides any folders added or deleted through the WebUI
+    settings = {
+      devices = {
+        "moto-g54-luca" = { id = "34SJ4HM-6WEUPL2-HA7OVOD-OKTDUNE-RUGYPFV-VQBM3QR-FYJFYIB-OEP3DQ7"; };
+        "moto-g54-laura" = { id = "7VGWXKO-GI673QT-INRM4FT-PIHWMNN-O4MEIXF-VHTUW3U-CSU5Y2O-WN4MJA6"; };
+        "hp800g3" = { id = "GV2W7BL-S6HT5OP-EACXTAJ-347P2ZA-ADGDATV-LDFCV3H-4IMT6NL-5HSMYA2"; };
+        "macmini" = { id = "NCANLZ5-ZM3WPT5-PE6X36O-YQLOPCR-AUHSJZX-3B74G72-V5F6KLM-XGJ2KQ5"; };
+        "SL3" = { id = "PUIWOMG-SGTQQQU-IMYD4Y4-6QLJHUL-GDYZZ7F-D7B5RQV-M4NJ4KG-5SHFVA3"; };
+        "PCMamiPapi" = { id = "E6ZAXTG-JD5UBHV-OS2AJ2R-2SUQ6DE-M6BQP4R-U7O6Z4L-U6DYZF7-2USXJAC"; };
+        "minipc" = { id = "DN56SO2-2FPLFIM-EGDDGH2-EAXNVL7-4Z5WBRZ-WBXHFWG-5FRFSSR-VDQBOAK"; };
+        "moto-g8 papi" = { id = "5ICHBLQ-EV4DVOK-ZQZUXUD-5Q776NO-QFGJAQV-HDL6VK6-VDFT4O3-73Z5BA2"; };
+      };
+      folders = {
+        "BigLens" = {
+          id = "62prt-kdyws";
+          path = "/mnt/hdd/history/BigLens";
+          devices = [ "hp800g3" "SL3" "macmini" ];
+        };
+        "EncFS" = {
+          id = "j6e46-4z2f7";
+          path = "/mnt/hdd/media/EncFS";
+          devices = [ "hp800g3" "SL3" "macmini" ];
+        };
+        "MobileLaura" = {
+          id = "moto_g_pro_8rrx-photos";
+          path = "/mnt/hdd/history/MobileLaura";
+          devices = [ "hp800g3" "macmini" "moto-g54-laura" ];
+        };
+        "MobileLuca" = {
+          id = "moto_g32_v6vm-photos";
+          path = "/mnt/hdd/history/MobileLuca";
+          devices = [ "hp800g3" "SL3" "macmini" "moto-g54-luca" ];
+        };
+        "Music" = {
+          id = "an4zy-wuavw";
+          path = "/mnt/hdd/media/Music";
+          devices = [ "hp800g3" "SL3" "macmini" ];
+        };
+        "WhatsAppLaura" = {
+          id = "5i2yp-05gou";
+          path = "/mnt/hdd/history/WhatsAppLaura";
+          devices = [ "hp800g3" "macmini" "moto-g54-laura" ];
+        };
+        "WhatsAppLuca" = {
+          id = "tysor-1yp0m";
+          path = "/mnt/hdd/history/WhatsAppLuca";
+          devices = [ "hp800g3" "SL3" "macmini" "moto-g54-luca" ];
+        };
+        "due" = {
+          id = "7bjjp-3xtez";
+          path = "/mnt/hdd/history/due";
+          devices = [ "hp800g3" "SL3" "macmini" "moto-g54-luca" ];
+        };
+        "BASB" = {
+          id = "3owyw-oilad";
+          path = "/mnt/hdd/history/BASB";
+          devices = [ "hp800g3" "macmini" "moto-g54-luca" "SL3" ];
+        };
+        "CameraPapi" = {
+          id = "moto_g8_power_zqnh-photos";
+          path = "/mnt/hdd/history/CameraPapi";
+          devices = [ "hp800g3" "minipc" ];
+        };
+        "WhatsAppPapi" = {
+          id = "sd1sl-9kgiw";
+          path = "/mnt/hdd/history/WhatsAppPapi";
+          devices = [ "hp800g3" "minipc" ];
+        };
+      };
+    };
+  };
+
+  # Immich (replace Google Photo)
+  services.immich = {
+    enable = true;
+    port = 2283;
+    host = "0.0.0.0";
+    openFirewall = true;
+    settings.server.externalDomain = "https://hpsff";
+  };
+  # Enabling Hardware Accelerated Video Transcoding
+  services.immich.accelerationDevices = null;
+  users.users.immich.extraGroups = [ "video" "render" ];
+  # TODO: remove once in 26.01
+  nixpkgs.config.permittedInsecurePackages = [
+    "immich-2.7.5"
+  ];
+
+
+  # Torrents
+  services.qbittorrent = {
+    enable = true;
+    user = "luca";
+    extraArgs = ["--confirm-legal-notice"];
+    webuiPort = 8081;
+  };
+
+  # Jellyfin (Movies, TV shows)
+  # runs on port 8096
+  services.jellyfin = {
+    enable = true;
+    user = "luca";
+  };
+
 
   # Optimising the store
   nix.settings.auto-optimise-store = true;
