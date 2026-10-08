@@ -14,13 +14,13 @@ sudo nixos-rebuild switch
 
 
 # NixOS Luca's gaming workstation
-{{ if eq .chezmoi.hostname "nixos-gaming"}}
+{{ if eq .chezmoi.hostname "steam"}}
 
 echo "Replace configuration.nix"
 sudo rm -rf /etc/nixos/configuration.nix
-sudo ln -s /home/{{ .chezmoi.username }}/.config/nixos/configuration_gaming.nix /etc/nixos/configuration.nix
+sudo ln -s /home/{{ .chezmoi.username }}/.config/nixos/configuration_steam.nix /etc/nixos/configuration.nix
 
-echo "Now using: /home/{{ .chezmoi.username }}/.config/nixos/configuration_gaming.nix"
+echo "Now using: /home/{{ .chezmoi.username }}/.config/nixos/configuration_steam.nix"
 sudo nixos-rebuild switch
 
 {{ end }}
