@@ -6,7 +6,6 @@
 
 let
   home-manager = builtins.fetchTarball https://github.com/nix-community/home-manager/archive/release-26.05.tar.gz;
-  plasma-manager = builtins.fetchTarball https://github.com/nix-community/plasma-manager/archive/trunk.tar.gz;
 in
 
 {
@@ -39,7 +38,7 @@ in
 
   networking.hostName = "steam";
   networking.networkmanager.enable = true;
-  networking.networkmanager.wifi.backend = "iwd";
+#   networking.networkmanager.wifi.backend = "iwd";
 
   hardware.bluetooth.enable = true;  
 
@@ -187,9 +186,12 @@ in
     protonup-qt
   ];
 
-
-  home-manager.users.luca = { pkgs, ... }: {
-  # The state version is required and should stay at the version you originally installed.
+  home-manager.users.luca = { pkgs, ... }:
+  let
+    plasma-manager = builtins.fetchTarball https://github.com/nix-community/plasma-manager/archive/trunk.tar.gz;
+  in
+  {
+    # The state version is required and should stay at the version you originally installed.
     home.stateVersion = "26.05";
 
     imports = [
@@ -200,7 +202,7 @@ in
       enable = true;
 
       powerdevil.AC = {
-        powerButtonAction = "hibernate";
+        powerButtonAction = "sleep";
         autoSuspend = {
           action = "sleep";
           idleTimeout = 600;
@@ -208,6 +210,13 @@ in
         whenSleepingEnter = "standbyThenHibernate";
         turnOffDisplay.idleTimeout = "never";
         dimDisplay.enable = false;
+      };
+
+      kscreenlocker = {
+        autoLock = false;
+        lockOnResume = false;
+        timeout = 0;
+        passwordRequired = false;
       };
     };
   };
