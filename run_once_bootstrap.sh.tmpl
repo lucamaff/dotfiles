@@ -101,6 +101,19 @@ sudo nixos-rebuild switch
 
 
 # Surface Laptop 3
+{{ if eq .chezmoi.hostname "surface"}}
+
+echo "Replace configuration.nix"
+sudo rm -rf /etc/nixos/configuration.nix
+sudo ln -s /home/{{ .chezmoi.username }}/.config/nixos/configuration_surface.nix /etc/nixos/configuration.nix
+
+echo "Now using: /home/{{ .chezmoi.username }}/.config/nixos/configuration_surface.nix"
+
+sudo nixos-rebuild switch
+
+{{ end }}
+
+
 {{ if eq .chezmoi.hostname "SL3"}}
 
 # Install Helpers from Repo
