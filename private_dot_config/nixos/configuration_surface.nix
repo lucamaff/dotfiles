@@ -13,6 +13,28 @@
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+  boot.loader.timeout = 3;
+  # Use this if /boot becomes full
+  boot.loader.systemd-boot.configurationLimit = 20;
+  # Setting RTC time standard to localtime, compatible with Windows in its default configuration
+  time.hardwareClockInLocalTime = true;
+
+  # mount /tmp inside tmpfs
+  boot.tmp.useTmpfs = true;
+  systemd.services.nix-daemon = {
+    environment.TMPDIR = "/var/tmp";
+  };
+
+  # improve RAM usage by compressing it
+  zramSwap = {
+    enable = true;
+    algorithm = "zstd";
+  };
+  
+  hardware.bluetooth.enable = true;
+  
+  # regular trim SSD
+  services.fstrim.enable = true;
 
   networking.hostName = "surface"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
@@ -96,15 +118,50 @@
   # List packages installed in system profile.
   # You can use https://search.nixos.org/ to find more packages (and options).
   environment.systemPackages = with pkgs; [
-    vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+    # minimum needed for INFRA
     bitwarden-cli
     chezmoi
-    git
     gh
+    git
+    
+    # terminal
+    btop
+    curl
     helix
-    logseq
+    htop
+    ncdu
     starship
+    tmux
     wget
+    
+    # desktop
+    bitwarden-desktop
+    brave
+    chromium
+    distrobox
+    gimp-with-plugins
+    keepassxc
+    libreoffice
+    logseq
+    pika-backup
+    qgis
+    telegram-desktop
+    teams-for-linux
+    ticktick
+    urbackup-client
+    vlc
+    vscodium
+    
+    # gnome
+    gnomeExtensions.appindicator
+    gnomeExtensions.forge
+    gnomeExtensions.mock-tray
+    gnomeExtensions.pano
+    gnomeExtensions.system-monitor
+    gnomeExtensions.wayland-or-x11
+    
+    # tools
+    encfs
   ];
 
   nixpkgs.config.permittedInsecurePackages = [
@@ -123,12 +180,24 @@
 
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
+  
+  # Tailscale VPN
+  services.tailscale.enable = true;
+  
+  # Podman
+  virtualisation.podman = {
+    enable = true;
+    dockerCompat = true;
+  };
+  environment.sessionVariables = {
+    PATH = [ "$HOME/.local/bin" ];
+  };
 
   # Syncthing
   services.syncthing = {
-    enable = false;
+    enable = true;
     user = "luca";
-    dataDir = "/mnt/data";
+    dataDir = "/home/luca";
     configDir = "/home/luca/.config/syncthing";
     openDefaultPorts = true;
     guiAddress = "localhost:8384";
@@ -136,41 +205,46 @@
     overrideFolders = true;     # overrides any folders added or deleted through the WebUI
     settings = {
       devices = {
+        "hpsff" = { id = "RCXTZCF-Y74FBPM-VHRYBLT-P56JVFA-LWVIKMW-ZSUAIFI-JY7QE6N-CISG6QU"; };
         "hp800g3" = { id = "GV2W7BL-S6HT5OP-EACXTAJ-347P2ZA-ADGDATV-LDFCV3H-4IMT6NL-5HSMYA2"; };
         "moto-g54-luca" = { id = "34SJ4HM-6WEUPL2-HA7OVOD-OKTDUNE-RUGYPFV-VQBM3QR-FYJFYIB-OEP3DQ7"; };
         "macmini" = { id = "NCANLZ5-ZM3WPT5-PE6X36O-YQLOPCR-AUHSJZX-3B74G72-V5F6KLM-XGJ2KQ5"; };
-        "zimaboard" = { id = "NXOCWQY-TLCJGYA-UMQRFQM-ZD2LS5X-5RQY4TH-4DXZZC4-KKOWX32-IHPMRQL"; };
       };
       folders = {
         "BigLens" = {
           id = "62prt-kdyws";
-          path = "/mnt/data/history/BigLens";
-          devices = [ "hp800g3" "macmini" "zimaboard" ];
+          path = "/home/luca/Pictures/BigLens";
+          devices = [ "hp800g3" "macmini" "hpsff" ];
         };
         "EncFS" = {
           id = "j6e46-4z2f7";
-          path = "/mnt/data/media/EncFS";
-          devices = [ "hp800g3" "macmini" "zimaboard" ];
+          path = "/home/luca/Videos/EncFS";
+          devices = [ "hp800g3" "macmini" "hpsff" ];
         };
         "MobileLuca" = {
           id = "moto_g32_v6vm-photos";
-          path = "/mnt/data/history/MobileLuca";
-          devices = [ "hp800g3" "macmini" "zimaboard" "moto-g54-luca" ];
+          path = "/home/luca/Pictures/MobileLuca";
+          devices = [ "hp800g3" "macmini" "hpsff" "moto-g54-luca" ];
         };
         "Music" = {
           id = "an4zy-wuavw";
-          path = "/mnt/data/media/Music";
-          devices = [ "hp800g3" "macmini" "zimaboard" ];
+          path = "/home/luca/Music";
+          devices = [ "hp800g3" "macmini" "hpsff" ];
         };
         "WhatsAppLuca" = {
           id = "tysor-1yp0m";
-          path = "/mnt/data/history/WhatsAppLuca";
-          devices = [ "hp800g3" "macmini" "zimaboard" "moto-g54-luca" ];
+          path = "/home/luca/Pictures/WhatsAppLuca";
+          devices = [ "hp800g3" "macmini" "hpsff" "moto-g54-luca" ];
         };
         "due" = {
           id = "7bjjp-3xtez";
-          path = "/home/luca/MEGA/due";
-          devices = [ "hp800g3" "macmini" "zimaboard" "penguin" "moto-g54-luca" ];
+          path = "/home/luca/Documents/due";
+          devices = [ "hp800g3" "macmini" "hpsff" "moto-g54-luca" ];
+        };
+        "BASB" = {
+          id = "3owyw-oilad";
+          path = "/home/luca/BASB";
+          devices = [ "hp800g3" "macmini" "hpsff" "moto-g54-luca" ];
         };
       };
     };
