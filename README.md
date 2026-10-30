@@ -8,16 +8,17 @@
 
 | Device             | hostname     |
 | ------------------ | ------------ |
-| Gaming workstation | nixos-gaming |
-| Laura's laptop     | nixos-laptop |
-| Acer mini laptop   | nixos-acer   |
+| Gaming workstation | steam        |
+| Surface Laptop 3   | surface      |
+| HP server Azzio    | hpsff        |
+| HP server Cuveglio | hp800g3      |
 
 ```fish
 sudo nano /etc/nixos/configuration.nix
 ```
 
 ```nix
-networking.hostName = "nixos-gaming"
+networking.hostName = "surface"
 ...
 environment.systemPackages = with pkgs; [
   bitwarden-cli
@@ -27,15 +28,12 @@ environment.systemPackages = with pkgs; [
 ];
 ```
 
+
 ```fish
 sudo nixos-rebuild switch
 ```
 
-3. Login to bitwarden and github
-
-```fish
-bw login
-```
+3. Login to github
 
 ```fish
 gh auth login
@@ -46,37 +44,6 @@ gh auth login
 ```fish
 chezmoi init --apply lucamaff
 ```
-
-## CachyOS
-
-1. Install CachyOS
-
-2. Install minimum packages:
-
-```fish
-bitwarden
-bitwarden-cli
-chezmoi
-git
-github-cli
-```
-
-3. Login to bitwarden and github
-
-```fish
-bw login
-```
-
-```fish
-gh auth login
-```
-
-4. Run
-
-```fish
-chezmoi init --apply lucamaff
-```
-
 
 
 ## Work servers
@@ -86,14 +53,10 @@ chezmoi init --apply lucamaff
 2. Create a minimal environment with chezmoi and few basic packages
 
 ```bash
-conda create -n chezmoi gh git chezmoi rbw  # rbw is unofficial bitwarden-cli
+conda create -n chezmoi gh git chezmoi
 ```
 
 3. Login to bitwarden and github
-
-```bash
-rbw login
-```
 
 ```bash
 gh auth login
@@ -104,5 +67,3 @@ gh auth login
 ```bash
 chezmoi init --apply lucamaff
 ```
-
-
