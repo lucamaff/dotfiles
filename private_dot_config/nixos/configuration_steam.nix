@@ -22,8 +22,7 @@ in
   boot.loader.systemd-boot.configurationLimit = 20;
   # Setting RTC time standard to localtime, compatible with Windows in its default configuration
   time.hardwareClockInLocalTime = true;
-  # enable systemd inside the initrd
-  boot.initrd.systemd.enable = true;
+
   # mount /tmp inside tmpfs
   boot.tmp.useTmpfs = true;
   systemd.services.nix-daemon = {
@@ -36,9 +35,34 @@ in
     algorithm = "zstd";
   };
 
+  fileSystems."/mnt/games" =
+    { device = "/dev/disk/by-uuid/66136f66-1ef5-4ed9-808a-425a04119778";
+      fsType = "btrfs";
+      options = [
+        "rw"
+        "noatime"          # Velocizza i caricamenti disattivando i timestamp di accesso
+        "compress=zstd:1"  # Zstd al livello 1 offre compressione rapidissima quasi a costo zero per la CPU
+        "ssd"              # Ottimizza l'allocazione dei blocchi per SSD/NVMe
+        "discard=async"    # TRIM continuo e asincrono (ottimo per le performance degli SSD moderni)
+        "space_cache=v2"   # Gestione moderna e veloce della cache dello spazio libero
+        "autodefrag"       # Evita la frammentazione dei piccoli file di gioco
+        "nofail"           # Impedisce il blocco del boot all'avvio se il drive è rimosso o spento
+        "x-systemd.automount" # Garantisce che il mount avvenga al primo accesso
+      ];
+    };
+  # Forza i permessi corretti per il tuo utente in modo dichiarativo
+  systemd.tmpfiles.rules = [
+    "d /mnt/games 0755 luca users - -"
+  ];
+  services.btrfs.autoScrub = {
+    enable = true;
+    interval = "monthly";
+    fileSystems = [ "/mnt/games" ]; # Applica lo scrub direttamente sul tuo drive
+  };
+
+
   networking.hostName = "steam";
   networking.networkmanager.enable = true;
-#   networking.networkmanager.wifi.backend = "iwd";
 
   hardware.bluetooth.enable = true;  
 
@@ -152,7 +176,6 @@ in
     STEAM_EXTRA_COMPAT_TOOLS_PATHS = "\${HOME}/.steam/root/compatibilitytools.d";
   };
 
-
   # SteamDeck like
   programs = {
     gamescope = {
@@ -161,6 +184,31 @@ in
     };
   };
 
+  # Local AI
+  services.ollama = {
+    enable = true;
+    package = pkgs.ollama-cuda;
+    # Bind to all interfaces on port 11434
+    host = "0.0.0.0";
+    port = 11434;
+    # Optional: preload models, see https://ollama.com/library
+    loadModels = [
+      "gemma3:4b"
+      "llama3:8b"
+      "qwen2.5:7b"
+      "qwen3.5:9b"
+    ];
+  };
+  networking.firewall.allowedTCPPorts = [ 11434 ];
+
+  # Podman
+  virtualisation.podman = {
+    enable = true;
+    dockerCompat = true;
+  };
+  environment.sessionVariables = {
+    PATH = [ "$HOME/.local/bin" ];
+  };
 
   nixpkgs.config.allowUnfree = true;
   environment.systemPackages = with pkgs; [
@@ -184,7 +232,10 @@ in
     mangojuice
     protonup-ng
     protonup-qt
+
+    distrobox
   ];
+
 
   home-manager.users.luca = { pkgs, ... }:
   let
