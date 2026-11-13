@@ -9,13 +9,15 @@
     [ # Include the results of the hardware scan.
       /etc/nixos/hardware-configuration.nix
     ];
+  
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.timeout = 3;
   # Use this if /boot becomes full
-  boot.loader.systemd-boot.configurationLimit = 20;
+  boot.loader.systemd-boot.configurationLimit = 15;
   # Setting RTC time standard to localtime, compatible with Windows in its default configuration
   time.hardwareClockInLocalTime = true;
 
@@ -144,6 +146,7 @@
     libreoffice
     logseq
     pika-backup
+    poppler-utils  # merge PDFs
     qgis
     telegram-desktop
     teams-for-linux
@@ -151,6 +154,7 @@
     urbackup-client
     vlc
     vscodium
+    whatsie  # WhatsApp CLient
     
     # gnome
     gnomeExtensions.appindicator
