@@ -67,3 +67,19 @@ gh auth login
 ```bash
 chezmoi init --apply lucamaff
 ```
+
+## Flake
+
+Downloads the latest package list and updates flake.lock
+
+```bash
+nix flake update
+```
+
+Applies the update to your system
+
+
+```bash
+sudo nixos-rebuild switch --flake .#surface
+sudo nixos-rebuild switch --flake .#steam
+```
